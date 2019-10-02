@@ -69,12 +69,15 @@ class SimpleVar<T> implements IVar<T> {
   }
 }
 
+function app(): DreactNode<any> {
+  const varName = Var('Danilo');
+  varName.setValue('Macaco');
+
+  return div(varText(varName));
+}
+
 
 const rootElement = document.createElement('div');
 document.body.appendChild(rootElement);
 
-const varName = Var('Danilo');
-
-render(div(varText(varName)), rootElement);
-
-varName.setValue('Macaco');
+render(app(), rootElement);
