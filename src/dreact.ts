@@ -2,28 +2,28 @@ import { IVar } from "./var";
 
 
 interface IDNodeContext {
-  appendDomNode(node: Node): void;
+  appendDomNode(node: Element, order: number): void;
 }
 
-var nodeCounter = 0;
+let nodeCounter = 0;
 
 class DNodeContext implements IDNodeContext {
   private nid: number = ++nodeCounter;
   private rootNode: HTMLElement | null = null;
   private mountedChildren: MountedDNode[] = [];
 
-  constructor(private parentContext: IDNodeContext) { }
+  constructor(private parentContext: IDNodeContext, private index: number) { }
 
   appendRootNode(node: HTMLElement) {
     this.rootNode = node;
-    this.parentContext.appendDomNode(node);
+    this.parentContext.appendDomNode(node, this.index);
   }
 
-  appendDomNode(node: Node) {
+  appendDomNode(node: Element, order: number) {
     if (this.rootNode) {
-      this.rootNode.appendChild(node);
+      appendNodeAt(this.rootNode, node, order);
     } else {
-      this.parentContext.appendDomNode(node);
+      this.parentContext.appendDomNode(node, order);
     }
   }
 
@@ -39,8 +39,8 @@ class DNodeContext implements IDNodeContext {
     }
   }
 
-  mountChild(child: DNode): MountedDNode {
-    const mountedChild = child.mount(new DNodeContext(this));
+  mountChild(child: DNode, index: number): MountedDNode {
+    const mountedChild = child.mount(new DNodeContext(this, index));
     this.mountedChildren.push(mountedChild);
     console.log(`node ${this.nid} mountChild ${this.mountedChildren.length}`);
     return mountedChild;
@@ -49,6 +49,20 @@ class DNodeContext implements IDNodeContext {
   end(): MountedDNode {
     return this;
   }
+}
+
+function appendNodeAt(parent: Element, child: Element, order: number) {
+  const children = parent.children;
+  child.setAttribute('order', String(order));
+  for (let i = 0; i < children.length; i++) {
+    const elem = children[i];
+    const orderI = elem.getAttribute('order');
+    if (orderI && parseInt(orderI) > order) {
+      parent.insertBefore(child, elem);
+      return;
+    }
+  }
+  parent.appendChild(child);
 }
 
 interface MountedDNode {
@@ -96,8 +110,9 @@ class DivNode extends DNode {
   mount(context: DNodeContext) {
     const div = document.createElement('div');
     context.appendRootNode(div);
-    for (const child of this.children) {
-      context.mountChild(child);
+    for (let i = 0; i < this.children.length; i++) {
+      const child = this.children[i];
+      context.mountChild(child, i);
     }
     return context.end();
   }
@@ -108,15 +123,15 @@ class IfNode extends DNode {
     super();
   }
   mount(context: DNodeContext) {
-    var mountedChild: null | MountedDNode = null;
+    let mountedChild: null | MountedDNode = null;
     if (this.condition.value) {
-      mountedChild = context.mountChild(this.child);
+      mountedChild = context.mountChild(this.child, 0);
     }
 
     this.condition.watch(newCondition => {
       if (newCondition) {
         if (!mountedChild) {
-          mountedChild = context.mountChild(this.child);
+          mountedChild = context.mountChild(this.child, 0);
         }
       } else {
         if (mountedChild) {
@@ -149,5 +164,5 @@ export function If(condition: IVar<any>, child: DNode): DNode {
 
 export function mount(tree: DNode, rootElement: HTMLElement) {
   const rootContext: IDNodeContext = { appendDomNode: node => rootElement.appendChild(node) };
-  tree.mount(new DNodeContext(rootContext));
+  tree.mount(new DNodeContext(rootContext, 0));
 }
