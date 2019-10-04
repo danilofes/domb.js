@@ -1,59 +1,63 @@
 import { IVar } from "./var";
 
-export interface DreactNode<T = any> {
-  render(data: T): Node,
-  data: T,
-};
 
-function renderText(text: string): Node {
-  return document.createTextNode(text);
+export abstract class DNode {
+  abstract mount(appendNode: (node: Node) => void): void;
 }
 
-function text(text: string): DreactNode<string> {
-  return { data: text, render: renderText };
-}
-
-
-function renderButton(props: IButtonProps): Node {
-  const button = document.createElement('button');
-  button.textContent = props.text;
-  button.onclick = props.onClick;
-  return button;
-}
-
-export interface IButtonProps {
-  text: string,
-  onClick: () => void
-}
-
-export function button(props: IButtonProps): DreactNode<IButtonProps> {
-  return { data: props, render: renderButton };
-}
-
-function renderVarText(varText: IVar<string>): Node {
-  const textNode = document.createTextNode(varText.value);
-  varText.watch(newText => {
-    textNode.textContent = newText;
-  });
-  return textNode;
-}
-
-export function varText(varText: IVar<string>): DreactNode<IVar<string>> {
-  return { data: varText, render: renderVarText };
-}
-
-function renderDiv(children: DreactNode<any>[]): Node {
-  const div = document.createElement('div');
-  for (const child of children) {
-    render(child, div);
+class Button extends DNode {
+  constructor(private text: string, private onClick: () => void) {
+    super();
   }
-  return div;
+  mount(appendNode: (node: Node) => void) {
+    const button = document.createElement('button');
+    button.textContent = this.text;
+    button.onclick = this.onClick;
+    appendNode(button);
+  }
 }
 
-export function div(children: DreactNode<any>[]): DreactNode<DreactNode<any>[]> {
-  return { data: children, render: renderDiv };
+class Text extends DNode {
+  constructor(private varText: IVar<string>) {
+    super();
+  }
+  mount(appendNode: (node: Node) => void) {
+    const textNode = document.createTextNode(this.varText.value);
+    this.varText.watch(newText => {
+      textNode.textContent = newText;
+    });
+    appendNode(textNode);
+  }
 }
 
-export function render(tree: DreactNode<any>, rootElement: HTMLElement) {
-  rootElement.appendChild(tree.render(tree.data));
+
+class Div extends DNode {
+  constructor(private children: DNode[]) {
+    super();
+  }
+  mount(appendNode: (node: Node) => void) {
+    const div = document.createElement('div');
+    for (const child of this.children) {
+      child.mount(node => div.appendChild(node));
+    }
+    return appendNode(div);
+  }
+}
+
+
+export function text(text: IVar<string>): DNode {
+  return new Text(text);
+}
+
+export function button(text: string, onClick: () => void): DNode {
+  return new Button(text, onClick);
+}
+
+export function div(children: DNode[]): DNode {
+  return new Div(children);
+}
+
+
+export function mount(tree: DNode, rootElement: HTMLElement) {
+  tree.mount(node => rootElement.appendChild(node))
 }
