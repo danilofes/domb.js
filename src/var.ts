@@ -16,6 +16,10 @@ export function Var<T>(value: T): IMutableVar<T> {
   return new SimpleVar<T>(value);
 }
 
+export function Val<T>(value: T): IVar<T> {
+  return new SimpleVal<T>(value);
+}
+
 
 abstract class AbstractVar<T> implements IVar<T> {
 
@@ -45,6 +49,18 @@ class SimpleVar<T> extends AbstractVar<T> implements IMutableVar<T> {
 
   watch(listener: IListener<T>) {
     this.listeners.push(listener);
+  }
+
+}
+
+class SimpleVal<T> extends AbstractVar<T> implements IVar<T> {
+
+  constructor(public value: T) {
+    super();
+  }
+
+  watch(listener: IListener<T>) {
+
   }
 
 }
