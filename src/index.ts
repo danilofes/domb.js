@@ -3,12 +3,12 @@ import { Var, Val } from './var';
 
 
 function app(): DNode {
-  const varCounter = Var(1);
+  const counter = Var(1);
 
   return Div([
-    If(varCounter.map(c => c % 2 === 0), Text(varCounter.map(c => `${c} par`))),
-    If(varCounter.map(c => c % 2 === 1), Text(varCounter.map(c => `${c} ímpar`))),
-    Button('Increment', () => varCounter.setValue(varCounter.value + 1))
+    Button('Increment', () => counter.setValue(counter.value + 1)),
+    If(counter.map(c => c % 2 === 0), Text(counter.map(c => `${c} par`))),
+    If(counter.map(c => c % 2 === 1), Text(counter.map(c => `${c} ímpar`)))
   ]);
 }
 
