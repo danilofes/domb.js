@@ -6,9 +6,8 @@ function app(): DNode {
   const varCounter = Var(1);
 
   return Div([
-    Text(varCounter.map(String)),
-    If(varCounter.map(c => c % 2 === 0), Text(Val(": par"))),
-    If(varCounter.map(c => c % 2 === 1), Text(Val(": ímpar"))),
+    If(varCounter.map(c => c % 2 === 0), Text(varCounter.map(c => `${c} par`))),
+    If(varCounter.map(c => c % 2 === 1), Text(varCounter.map(c => `${c} ímpar`))),
     Button('Increment', () => varCounter.setValue(varCounter.value + 1))
   ]);
 }

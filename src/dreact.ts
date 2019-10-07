@@ -1,4 +1,5 @@
-import { IVar } from "./var";
+import { IListener, IVal, IUnsubscribe } from "./var";
+import { removeFromArray } from "./util";
 
 
 interface IDNodeContext {
@@ -11,12 +12,22 @@ class DNodeContext implements IDNodeContext {
   private nid: number = ++nodeCounter;
   private rootNode: HTMLElement | null = null;
   private mountedChildren: MountedDNode[] = [];
+  private subscriptions: IUnsubscribe[] = [];
 
   constructor(private parentContext: IDNodeContext, private index: number) { }
 
   appendRootNode(node: HTMLElement) {
     this.rootNode = node;
     this.parentContext.appendDomNode(node, this.index);
+  }
+
+  watch<T>(v: IVal<T>, listener: IListener<T>): IUnsubscribe {
+    const unsubFn = v.watch(listener);
+    this.subscriptions.push(unsubFn);
+    return () => {
+      removeFromArray(this.subscriptions, unsubFn);
+      unsubFn();
+    }
   }
 
   appendDomNode(node: Element, order: number) {
@@ -28,12 +39,13 @@ class DNodeContext implements IDNodeContext {
   }
 
   unmount() {
-    console.log(`node ${this.nid} unmount child ${this.mountedChildren.length}`);
+    for (const unsubscribe of this.subscriptions) {
+      unsubscribe();
+    }
     for (const child of this.mountedChildren) {
       child.unmount();
     }
     if (this.rootNode) {
-      console.log(`node ${this.nid} remove rootNode`);
       this.rootNode.remove();
       this.rootNode = null;
     }
@@ -42,7 +54,7 @@ class DNodeContext implements IDNodeContext {
   mountChild(child: DNode, index: number): MountedDNode {
     const mountedChild = child.mount(new DNodeContext(this, index));
     this.mountedChildren.push(mountedChild);
-    console.log(`node ${this.nid} mountChild ${this.mountedChildren.length}`);
+    //console.log(`node ${this.nid} mountChild ${this.mountedChildren.length}`);
     return mountedChild;
   }
 
@@ -87,7 +99,7 @@ class ButtonNode extends DNode {
 }
 
 class TextNode extends DNode {
-  constructor(private varText: IVar<string>) {
+  constructor(private varText: IVal<string>) {
     super();
   }
   mount(context: DNodeContext) {
@@ -95,7 +107,8 @@ class TextNode extends DNode {
     const textNode = document.createTextNode(this.varText.value);
     spanNode.appendChild(textNode);
     context.appendRootNode(spanNode);
-    this.varText.watch(newText => {
+    context.watch(this.varText, newText => {
+      console.log(`watch ${newText}`);
       textNode.textContent = newText;
     });
     return context.end();
@@ -119,7 +132,7 @@ class DivNode extends DNode {
 }
 
 class IfNode extends DNode {
-  constructor(private condition: IVar<any>, private child: DNode) {
+  constructor(private condition: IVal<any>, private child: DNode) {
     super();
   }
   mount(context: DNodeContext) {
@@ -128,7 +141,7 @@ class IfNode extends DNode {
       mountedChild = context.mountChild(this.child, 0);
     }
 
-    this.condition.watch(newCondition => {
+    context.watch(this.condition, newCondition => {
       if (newCondition) {
         if (!mountedChild) {
           mountedChild = context.mountChild(this.child, 0);
@@ -146,7 +159,7 @@ class IfNode extends DNode {
 }
 
 
-export function Text(text: IVar<string>): DNode {
+export function Text(text: IVal<string>): DNode {
   return new TextNode(text);
 }
 
@@ -158,7 +171,7 @@ export function Div(children: DNode[]): DNode {
   return new DivNode(children);
 }
 
-export function If(condition: IVar<any>, child: DNode): DNode {
+export function If(condition: IVal<any>, child: DNode): DNode {
   return new IfNode(condition, child);
 }
 

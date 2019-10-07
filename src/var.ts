@@ -1,38 +1,40 @@
+import { removeFromArray } from "./util";
 
-type IListener<T> = (newValue: T) => void;
+export type IListener<T> = (newValue: T, prevValue: T) => void;
 
-export interface IVar<T> {
+export type IUnsubscribe = () => void;
+
+export interface IVal<T> {
   value: T,
-  watch: (listener: IListener<T>) => void,
-  map: <U>(fn: (v: T) => U) => IVar<U>
+  watch: (listener: IListener<T>) => IUnsubscribe,
+  map: <U>(fn: (v: T) => U) => IVal<U>
 }
 
-
-export interface IMutableVar<T> extends IVar<T> {
+export interface IVar<T> extends IVal<T> {
   setValue: (newValue: T) => void
 }
 
-export function Var<T>(value: T): IMutableVar<T> {
+export function Var<T>(value: T): IVar<T> {
   return new SimpleVar<T>(value);
 }
 
-export function Val<T>(value: T): IVar<T> {
+export function Val<T>(value: T): IVal<T> {
   return new SimpleVal<T>(value);
 }
 
 
-abstract class AbstractVar<T> implements IVar<T> {
+abstract class AbstractVal<T> implements IVal<T> {
 
   abstract get value(): T;
 
-  abstract watch(listener: IListener<T>): void;
+  abstract watch(listener: IListener<T>): IUnsubscribe;
 
-  map<U>(mappingFn: (v: T) => U): IVar<U> {
+  map<U>(mappingFn: (v: T) => U): IVal<U> {
     return new MappedVar<T, U>(this, mappingFn);
   }
 }
 
-class SimpleVar<T> extends AbstractVar<T> implements IMutableVar<T> {
+class SimpleVar<T> extends AbstractVal<T> implements IVar<T> {
   private listeners: IListener<T>[];
 
   constructor(public value: T) {
@@ -41,33 +43,37 @@ class SimpleVar<T> extends AbstractVar<T> implements IMutableVar<T> {
   }
 
   setValue(newValue: T) {
+    const oldValue = this.value;
     this.value = newValue;
     for (const l of this.listeners) {
-      l(newValue);
+      l(newValue, oldValue);
     }
   }
 
   watch(listener: IListener<T>) {
     this.listeners.push(listener);
+    return () => removeFromArray(this.listeners, listener);
   }
 
 }
 
-class SimpleVal<T> extends AbstractVar<T> implements IVar<T> {
+const noop = () => { };
+
+class SimpleVal<T> extends AbstractVal<T> implements IVal<T> {
 
   constructor(public value: T) {
     super();
   }
 
   watch(listener: IListener<T>) {
-
+    return noop;
   }
 
 }
 
-class MappedVar<T, U> extends AbstractVar<U> {
+class MappedVar<T, U> extends AbstractVal<U> {
 
-  constructor(private mainVar: IVar<T>, private mappingFn: (v: T) => U) {
+  constructor(private mainVar: IVal<T>, private mappingFn: (v: T) => U) {
     super();
   }
 
@@ -76,7 +82,9 @@ class MappedVar<T, U> extends AbstractVar<U> {
   }
 
   watch(listener: IListener<U>) {
-    this.mainVar.watch((value: T) => listener(this.mappingFn(value)));
+    return this.mainVar.watch((newValue: T, prevValue: T) => {
+      listener(this.mappingFn(newValue), this.mappingFn(prevValue));
+    });
   }
 
 }
