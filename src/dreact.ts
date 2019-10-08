@@ -1,4 +1,4 @@
-import { IListener, IVal, IUnsubscribe } from "./var";
+import { IListener, IVal, IUnsubscribe, IVar } from "./var";
 import { removeFromArray } from "./util";
 
 
@@ -14,7 +14,7 @@ class DNodeContext implements IDNodeContext {
   private mountedChildren: MountedDNode[] = [];
   private subscriptions: IUnsubscribe[] = [];
 
-  constructor(private parentContext: IDNodeContext, private index: number) { }
+  constructor(private parentContext: IDNodeContext, public readonly index: number) { }
 
   appendRootNode(node: HTMLElement) {
     this.rootNode = node;
@@ -98,6 +98,30 @@ class ButtonNode extends DNode {
   }
 }
 
+class TextInputNode extends DNode {
+  constructor(private value: IVar<string>) {
+    super();
+  }
+  mount(context: DNodeContext) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.oninput = event => {
+      const newValue = input.value;
+      this.value.setValue(newValue);
+    }
+    context.watch(this.value, newValue => {
+      input.value = newValue;
+    });
+    context.appendRootNode(input);
+    return context.end();
+  }
+
+  onInput(e: Event) {
+    console.log(e.target);
+  }
+}
+
+
 class TextNode extends DNode {
   constructor(private varText: IVal<string>) {
     super();
@@ -108,7 +132,6 @@ class TextNode extends DNode {
     spanNode.appendChild(textNode);
     context.appendRootNode(spanNode);
     context.watch(this.varText, newText => {
-      console.log(`watch ${newText}`);
       textNode.textContent = newText;
     });
     return context.end();
@@ -138,13 +161,13 @@ class IfNode extends DNode {
   mount(context: DNodeContext) {
     let mountedChild: null | MountedDNode = null;
     if (this.condition.value) {
-      mountedChild = context.mountChild(this.child, 0);
+      mountedChild = context.mountChild(this.child, context.index);
     }
 
     context.watch(this.condition, newCondition => {
       if (newCondition) {
         if (!mountedChild) {
-          mountedChild = context.mountChild(this.child, 0);
+          mountedChild = context.mountChild(this.child, context.index);
         }
       } else {
         if (mountedChild) {
@@ -161,6 +184,10 @@ class IfNode extends DNode {
 
 export function Text(text: IVal<string>): DNode {
   return new TextNode(text);
+}
+
+export function TextInput(value: IVar<string>): DNode {
+  return new TextInputNode(value);
 }
 
 export function Button(text: string, onClick: () => void): DNode {
