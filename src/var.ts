@@ -88,3 +88,64 @@ class MappedVar<T, U> extends AbstractVal<U> {
   }
 
 }
+
+
+interface ArrayOpAdd<T> {
+  type: 'add';
+  index: number;
+  item: T;
+}
+
+interface ArrayOpRemove {
+  type: 'remove';
+  index: number;
+}
+
+type ArrayOp<T> = ArrayOpAdd<T> | ArrayOpRemove;
+
+interface ArrayDiff<T> {
+  value: readonly T[],
+  operations: ArrayOp<T>[]
+}
+
+export type IArrayListener<T> = (diff: ArrayDiff<T>) => void;
+
+
+export interface IVals<T> {
+  items: T[],
+  watch: (listener: IArrayListener<T>) => IUnsubscribe
+}
+
+export class ObservableArray<T> {
+  private _items: T[];
+  private listeners: IArrayListener<T>[];
+
+  constructor(items: T[]) {
+    this._items = items;
+    this.listeners = [];
+  }
+
+  get items(): readonly T[] {
+    return this._items;
+  }
+
+  addAt(index: number, item: T) {
+    this._items.splice(index, 0, item);
+    for (const l of this.listeners) {
+      l({ value: this._items, operations: [{ type: 'add', index, item }] });
+    }
+  }
+
+  removeAt(index: number, item: T) {
+    this._items.splice(index, 1);
+    for (const l of this.listeners) {
+      l({ value: this._items, operations: [{ type: 'remove', index }] });
+    }
+  }
+
+  watch(listener: IArrayListener<T>) {
+    this.listeners.push(listener);
+    return () => removeFromArray(this.listeners, listener);
+  }
+
+}

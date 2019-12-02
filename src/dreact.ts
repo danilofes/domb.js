@@ -1,4 +1,4 @@
-import { IListener, IVal, IUnsubscribe, IVar } from "./var";
+import { IListener, IVal, IUnsubscribe, IVar, IVals } from "./var";
 import { removeFromArray } from "./util";
 
 
@@ -21,13 +21,16 @@ class DNodeContext implements IDNodeContext {
     this.parentContext.appendDomNode(node, this.index);
   }
 
-  watch<T>(v: IVal<T>, listener: IListener<T>): IUnsubscribe {
-    const unsubFn = v.watch(listener);
+  addSubscription<T>(unsubFn: IUnsubscribe): IUnsubscribe {
     this.subscriptions.push(unsubFn);
     return () => {
       removeFromArray(this.subscriptions, unsubFn);
       unsubFn();
     }
+  }
+
+  watch<T>(v: IVal<T>, listener: IListener<T>): IUnsubscribe {
+    return this.addSubscription(v.watch(listener));
   }
 
   appendDomNode(node: Element, order: number) {
@@ -150,6 +153,34 @@ class DivNode extends DNode {
       const child = this.children[i];
       context.mountChild(child, i);
     }
+    return context.end();
+  }
+}
+
+class DivNode2 extends DNode {
+  constructor(private children: IVals<DNode>) {
+    super();
+  }
+  mount(context: DNodeContext) {
+    let mountedChild: MountedDNode[] = [];
+
+    const div = document.createElement('div');
+    context.appendRootNode(div);
+    for (let i = 0; i < this.children.items.length; i++) {
+      const child = this.children.items[i];
+      mountedChild.push(context.mountChild(child, i));
+    }
+    context.addSubscription(this.children.watch(diff => {
+      for (const op of diff.operations) {
+        if (op.type === 'add') {
+          const newNode = context.mountChild(op.item, op.index);
+          mountedChild.splice(op.index, 0, newNode);
+        } else if (op.type === 'remove') {
+          mountedChild[op.index].unmount();
+          mountedChild.splice(op.index, 1);
+        }
+      }
+    }));
     return context.end();
   }
 }
