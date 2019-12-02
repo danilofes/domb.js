@@ -112,11 +112,11 @@ export type IArrayListener<T> = (diff: ArrayDiff<T>) => void;
 
 
 export interface IVals<T> {
-  items: T[],
+  items: readonly T[],
   watch: (listener: IArrayListener<T>) => IUnsubscribe
 }
 
-export class ObservableArray<T> {
+export class ObservableArray<T> implements IVals<T> {
   private _items: T[];
   private listeners: IArrayListener<T>[];
 
