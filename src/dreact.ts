@@ -158,19 +158,19 @@ class DivNode extends DNode {
 }
 
 class RepeatNode<T> extends DNode {
-  constructor(private children: IVals<T>, private nodeBuilder: (item: T) => DNode) {
+  constructor(private children: IVals<T>, private nodeBuilder: (item: T, index: IVal<number>) => DNode) {
     super();
   }
   mount(context: DNodeContext) {
     let mountedChild: MountedDNode[] = [];
     for (let i = 0; i < this.children.items.length; i++) {
       const item = this.children.items[i];
-      mountedChild.push(context.mountChild(this.nodeBuilder(item), i));
+      mountedChild.push(context.mountChild(this.nodeBuilder(item, this.children.indexVal(i)), i));
     }
     context.addSubscription(this.children.watch(diff => {
       for (const op of diff.operations) {
         if (op.type === 'add') {
-          const newNode = context.mountChild(this.nodeBuilder(op.item), op.index);
+          const newNode = context.mountChild(this.nodeBuilder(op.item, this.children.indexVal(op.index)), op.index);
           mountedChild.splice(op.index, 0, newNode);
         } else if (op.type === 'remove') {
           mountedChild[op.index].unmount();
@@ -230,7 +230,7 @@ export function If(condition: IVal<any>, child: DNode): DNode {
   return new IfNode(condition, child);
 }
 
-export function Repeat<T>(vals: IVals<T>, nodeBuilder: (item: T) => DNode): DNode {
+export function Repeat<T>(vals: IVals<T>, nodeBuilder: (item: T, index: IVal<number>) => DNode): DNode {
   return new RepeatNode(vals, nodeBuilder);
 }
 

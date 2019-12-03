@@ -44,9 +44,11 @@ class SimpleVar<T> extends AbstractVal<T> implements IVar<T> {
 
   setValue(newValue: T) {
     const oldValue = this.value;
-    this.value = newValue;
-    for (const l of this.listeners) {
-      l(newValue, oldValue);
+    if (newValue !== oldValue) {
+      this.value = newValue;
+      for (const l of this.listeners) {
+        l(newValue, oldValue);
+      }
     }
   }
 
@@ -55,13 +57,16 @@ class SimpleVar<T> extends AbstractVal<T> implements IVar<T> {
     return () => removeFromArray(this.listeners, listener);
   }
 
+  clearListeners() {
+    this.listeners.splice(0, this.listeners.length);
+  }
 }
 
 const noop = () => { };
 
 class SimpleVal<T> extends AbstractVal<T> implements IVal<T> {
 
-  constructor(public value: T) {
+  constructor(public readonly value: T) {
     super();
   }
 
@@ -113,15 +118,18 @@ export type IArrayListener<T> = (diff: ArrayDiff<T>) => void;
 
 export interface IVals<T> {
   items: readonly T[],
-  watch: (listener: IArrayListener<T>) => IUnsubscribe
+  watch: (listener: IArrayListener<T>) => IUnsubscribe,
+  indexVal: (index: number) => IVal<number>
 }
 
 export class ObservableArray<T> implements IVals<T> {
   private _items: T[];
+  private _indexes: SimpleVar<number>[];
   private listeners: IArrayListener<T>[];
 
   constructor(items: T[]) {
     this._items = items;
+    this._indexes = items.map((item, index) => new SimpleVar(index));
     this.listeners = [];
   }
 
@@ -129,17 +137,32 @@ export class ObservableArray<T> implements IVals<T> {
     return this._items;
   }
 
+  indexVal(index: number): IVal<number> {
+    return this._indexes[index];
+  }
+
   addAt(index: number, item: T) {
     this._items.splice(index, 0, item);
+    this._indexes.splice(index, 0, new SimpleVar(index));
     for (const l of this.listeners) {
       l({ value: this._items, operations: [{ type: 'add', index, item }] });
     }
+    for (let i = index + 1; i < this._indexes.length; i++) {
+      this._indexes[i].setValue(i);
+    }
   }
 
-  removeAt(index: number, item: T) {
+  removeAt(index: number) {
     this._items.splice(index, 1);
+    const deletedVars = this._indexes.splice(index, 1);
+    for (const deletedVar of deletedVars) {
+      deletedVar.clearListeners();
+    }
     for (const l of this.listeners) {
       l({ value: this._items, operations: [{ type: 'remove', index }] });
+    }
+    for (let i = index; i < this._indexes.length; i++) {
+      this._indexes[i].setValue(i);
     }
   }
 

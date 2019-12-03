@@ -21,11 +21,11 @@ function app(): DNode {
     If(counter.map(c => c % 2 === 0), Text(counter.map(c => `${c} par`))),
     If(counter.map(c => c % 2 === 1), Text(counter.map(c => `${c} ímpar`))),
     Div([
-      Repeat(todos, todo => Div([
+      Repeat(todos, (todo, index) => Div([
+        Text(index.map(String)),
         Text(Val(todo)),
         Button('Delete', () => {
-          //todos.addAt(todos.items.length, `item ${counter.value}`);
-          
+          todos.removeAt(index.value);
         })
       ]))
     ])
