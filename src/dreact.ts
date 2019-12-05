@@ -33,6 +33,11 @@ class DNodeContext implements IDNodeContext {
     return this.addSubscription(v.watch(listener));
   }
 
+  bindElementAttribute(node: Element, key: string, v: IVal<string>) {
+    node.setAttribute(key, v.value);
+    this.addSubscription(v.watch(newValue => node.setAttribute(key, newValue)));
+  }
+
   appendDomNode(node: Element, order: number) {
     if (this.rootNode) {
       appendNodeAt(this.rootNode, node, order);
@@ -142,13 +147,18 @@ class TextNode extends DNode {
 }
 
 
-class DivNode extends DNode {
-  constructor(private children: DNode[]) {
+class ElementNode extends DNode {
+  constructor(private elementType: keyof HTMLElementTagNameMap, private attributes: { [key: string]: IVal<string> }, private children: DNode[]) {
     super();
   }
   mount(context: DNodeContext) {
-    const div = document.createElement('div');
-    context.appendRootNode(div);
+    const el = document.createElement(this.elementType);
+
+    for (const attributeKey in this.attributes) {
+      context.bindElementAttribute(el, attributeKey, this.attributes[attributeKey]);
+    }
+
+    context.appendRootNode(el);
     for (let i = 0; i < this.children.length; i++) {
       const child = this.children[i];
       context.mountChild(child, i);
@@ -156,6 +166,7 @@ class DivNode extends DNode {
     return context.end();
   }
 }
+
 
 class RepeatNode<T> extends DNode {
   constructor(private children: IVals<T>, private nodeBuilder: (item: T, index: IVal<number>) => DNode) {
@@ -223,7 +234,7 @@ export function Button(text: string, onClick: () => void): DNode {
 }
 
 export function Div(children: DNode[]): DNode {
-  return new DivNode(children);
+  return new ElementNode('div', {}, children);
 }
 
 export function If(condition: IVal<any>, child: DNode): DNode {
