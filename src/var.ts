@@ -22,6 +22,10 @@ export function Val<T>(value: T): IVal<T> {
   return new SimpleVal<T>(value);
 }
 
+export function StrVal(strings: TemplateStringsArray, ...vals: (IVal<string> | string)[]): IVal<string> {
+  const normalizedVals = vals.map(s => typeof s === 'string' ? Val(s) : s);
+  return new TemplateVal(strings, normalizedVals);
+}
 
 abstract class AbstractVal<T> implements IVal<T> {
 
@@ -171,4 +175,55 @@ export class ObservableArray<T> implements IVals<T> {
     return () => removeFromArray(this.listeners, listener);
   }
 
+}
+
+
+abstract class DerivedVal<T, U> extends AbstractVal<U> {
+  private cachedValue: U;
+
+  constructor(private vals: IVal<T>[], private computeValue: (vals: T[]) => U) {
+    super();
+    this.cachedValue = computeValue(vals.map(iVal => iVal.value));
+  }
+
+  get value() {
+    return this.cachedValue;
+  }
+
+  watch(listener: IListener<U>) {
+    const subscriptions = this.vals.map(iVal => {
+      return iVal.watch((newValue, prevValue) => {
+        const lastComputedValue = this.cachedValue;
+        const newComputedValue = this.computeValue(this.vals.map(iVal => iVal.value));
+        if (!this.isEqual(newComputedValue, lastComputedValue)) {
+          this.cachedValue = newComputedValue;
+          listener(newComputedValue, lastComputedValue);
+        }
+      });
+    });
+
+    return () => {
+      for (let undo of subscriptions) {
+        undo();
+      }
+    }
+  }
+
+  isEqual(v1: U, v2: U): boolean {
+    return v1 === v2;
+  }
+}
+
+class TemplateVal extends DerivedVal<string, string> {
+  constructor(private strings: TemplateStringsArray, vals: IVal<string>[]) {
+    super(vals, values => applyTemplateVals(strings, values));
+  }
+}
+
+function applyTemplateVals(strings: TemplateStringsArray, values: string[]): string {
+  let result = '';
+  for (let i = 0; i < strings.length; i++) {
+    result += strings[i] + (values[i] || '');
+  }
+  return result;
 }

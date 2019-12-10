@@ -1,4 +1,4 @@
-import { DNode, Div, Text, mount, Button, If, TextInput, Repeat } from './dreact';
+import { DNode, Div, Text, mount, Button, If, TextInput, Repeat, TText } from './dreact';
 import { Var, Val, ObservableArray } from './var';
 
 
@@ -13,8 +13,8 @@ function app(): DNode {
     Button('Increment', () => {
       counter.setValue(counter.value + 1);
     }),
-    If(counter.map(c => c % 2 === 0), Text(counter.map(c => `${c} par`))),
-    If(counter.map(c => c % 2 === 1), Text(counter.map(c => `${c} ímpar`))),
+    If(counter.map(c => c % 2 === 0), TText`${counter.map(String)} par`),
+    If(counter.map(c => c % 2 === 1), TText`${counter.map(String)} ímpar`),
     Div([
       TextInput(search),
     ]),

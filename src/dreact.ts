@@ -1,4 +1,4 @@
-import { IListener, IVal, IUnsubscribe, IVar, IVals } from "./var";
+import { IListener, IVal, IUnsubscribe, IVar, IVals, StrVal } from "./var";
 import { removeFromArray } from "./util";
 
 
@@ -193,6 +193,10 @@ class IfNode extends DNode {
 
 export function Text(text: IVal<string>): DNode {
   return new TextNode(text);
+}
+
+export function TText(strings: TemplateStringsArray, ...vals: (IVal<string> | string)[]): DNode {
+  return new TextNode(StrVal(strings, ...vals));
 }
 
 export function TextInput(value: IVar<string>): DNode {
