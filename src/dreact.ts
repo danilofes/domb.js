@@ -2,90 +2,59 @@ import { IListener, IVal, IUnsubscribe, IVar, IVals } from "./var";
 import { removeFromArray } from "./util";
 
 
-interface IDNodeContext {
-  appendDomNode(node: Element, order: number): void;
-}
-
 let nodeCounter = 0;
 
-class DNodeContext implements IDNodeContext {
-  private nid: number = ++nodeCounter;
-  private rootNode: HTMLElement | null = null;
-  private mountedChildren: MountedDNode[] = [];
-  private subscriptions: IUnsubscribe[] = [];
+class DNodeContext {
+  public readonly nid: number = ++nodeCounter;
+  private undoList: IUnsubscribe[] = [];
 
-  constructor(private parentContext: IDNodeContext, public readonly index: number) { }
+  constructor(public readonly parentElement: HTMLElement, public readonly referenceNode: Node | null, public readonly parent?: DNodeContext) { }
 
-  appendRootNode(node: HTMLElement) {
-    this.rootNode = node;
-    this.parentContext.appendDomNode(node, this.index);
+  appendNode<T extends Node>(node: T): T {
+    const appendedNode = this.parentElement.insertBefore(node, this.referenceNode);
+    this.addUndo(() => { this.parentElement.removeChild(appendedNode) });
+    return appendedNode;
   }
 
-  addSubscription<T>(unsubFn: IUnsubscribe): IUnsubscribe {
-    this.subscriptions.push(unsubFn);
+  addUndo<T>(unsubFn: IUnsubscribe): IUnsubscribe {
+    this.undoList.push(unsubFn);
     return () => {
-      removeFromArray(this.subscriptions, unsubFn);
+      removeFromArray(this.undoList, unsubFn);
       unsubFn();
     }
   }
 
-  watch<T>(v: IVal<T>, listener: IListener<T>): IUnsubscribe {
-    return this.addSubscription(v.watch(listener));
-  }
-
-  bindElementAttribute(node: Element, key: string, v: IVal<string>) {
+  bindElementAttribute(node: Element, key: string, v: IVal<string>): IUnsubscribe {
     node.setAttribute(key, v.value);
-    this.addSubscription(v.watch(newValue => node.setAttribute(key, newValue)));
+    return this.addUndo(v.watch(newValue => node.setAttribute(key, newValue)));
   }
 
-  appendDomNode(node: Element, order: number) {
-    if (this.rootNode) {
-      appendNodeAt(this.rootNode, node, order);
-    } else {
-      this.parentContext.appendDomNode(node, order);
-    }
+  bindInputValue(input: HTMLInputElement, v: IVal<string>): IUnsubscribe {
+    input.value = v.value;
+    return this.addUndo(v.watch(newValue => { input.value = newValue; }));
   }
 
-  unmount() {
-    for (const unsubscribe of this.subscriptions) {
-      unsubscribe();
-    }
-    for (const child of this.mountedChildren) {
-      child.unmount();
-    }
-    if (this.rootNode) {
-      this.rootNode.remove();
-      this.rootNode = null;
-    }
+  mountChild(child: DNode, parentElement: HTMLElement, referenceNode: Node | null): MountedDNode {
+    return child.mount(new DNodeContext(parentElement, referenceNode, this));
   }
 
-  mountChild(child: DNode, index: number): MountedDNode {
-    const mountedChild = child.mount(new DNodeContext(this, index));
-    this.mountedChildren.push(mountedChild);
-    //console.log(`node ${this.nid} mountChild ${this.mountedChildren.length}`);
-    return mountedChild;
-  }
+  end(mainNode: Node): MountedDNode {
+    const unmountFn = () => {
+      for (let i = this.undoList.length - 1; i >= 0; i--) {
+        this.undoList[i]();
+      }
+      this.undoList = [];
+    };
 
-  end(): MountedDNode {
-    return this;
+    return {
+      mainNode,
+      unmount: this.parent ? this.parent.addUndo(unmountFn) : unmountFn
+    };
   }
-}
-
-function appendNodeAt(parent: Element, child: Element, order: number) {
-  const children = parent.children;
-  child.setAttribute('order', String(order));
-  for (let i = 0; i < children.length; i++) {
-    const elem = children[i];
-    const orderI = elem.getAttribute('order');
-    if (orderI && parseInt(orderI) > order) {
-      parent.insertBefore(child, elem);
-      return;
-    }
-  }
-  parent.appendChild(child);
 }
 
 interface MountedDNode {
+  mainNode: Node,
   unmount(): void
 }
 
@@ -101,8 +70,8 @@ class ButtonNode extends DNode {
     const button = document.createElement('button');
     button.textContent = this.text;
     button.onclick = this.onClick;
-    context.appendRootNode(button);
-    return context.end();
+    context.appendNode(button);
+    return context.end(button);
   }
 }
 
@@ -117,15 +86,9 @@ class TextInputNode extends DNode {
       const newValue = input.value;
       this.value.setValue(newValue);
     }
-    context.watch(this.value, newValue => {
-      input.value = newValue;
-    });
-    context.appendRootNode(input);
-    return context.end();
-  }
-
-  onInput(e: Event) {
-    console.log(e.target);
+    context.bindInputValue(input, this.value);
+    context.appendNode(input);
+    return context.end(input);
   }
 }
 
@@ -135,14 +98,13 @@ class TextNode extends DNode {
     super();
   }
   mount(context: DNodeContext) {
-    const spanNode = document.createElement('span');
     const textNode = document.createTextNode(this.varText.value);
-    spanNode.appendChild(textNode);
-    context.appendRootNode(spanNode);
-    context.watch(this.varText, newText => {
+    context.addUndo(this.varText.watch(newText => {
       textNode.textContent = newText;
-    });
-    return context.end();
+    }));
+    context.appendNode(textNode);
+
+    return context.end(textNode);
   }
 }
 
@@ -158,12 +120,12 @@ class ElementNode extends DNode {
       context.bindElementAttribute(el, attributeKey, this.attributes[attributeKey]);
     }
 
-    context.appendRootNode(el);
+    context.appendNode(el);
     for (let i = 0; i < this.children.length; i++) {
       const child = this.children[i];
-      context.mountChild(child, i);
+      context.mountChild(child, el, null);
     }
-    return context.end();
+    return context.end(el);
   }
 }
 
@@ -173,15 +135,19 @@ class RepeatNode<T> extends DNode {
     super();
   }
   mount(context: DNodeContext) {
+    const startNode = context.appendNode(document.createComment('Repeat start'));
+    const endNode = context.appendNode(document.createComment('Repeat end'));
+
     let mountedChild: MountedDNode[] = [];
     for (let i = 0; i < this.children.items.length; i++) {
       const item = this.children.items[i];
-      mountedChild.push(context.mountChild(this.nodeBuilder(item, this.children.indexVal(i)), i));
+      mountedChild.push(context.mountChild(this.nodeBuilder(item, this.children.indexVal(i)), context.parentElement, endNode));
     }
-    context.addSubscription(this.children.watch(diff => {
+    context.addUndo(this.children.watch(diff => {
       for (const op of diff.operations) {
         if (op.type === 'add') {
-          const newNode = context.mountChild(this.nodeBuilder(op.item, this.children.indexVal(op.index)), op.index);
+          const position = op.index < mountedChild.length ? mountedChild[op.index].mainNode : null;
+          const newNode = context.mountChild(this.nodeBuilder(op.item, this.children.indexVal(op.index)), context.parentElement, position);
           mountedChild.splice(op.index, 0, newNode);
         } else if (op.type === 'remove') {
           mountedChild[op.index].unmount();
@@ -189,7 +155,7 @@ class RepeatNode<T> extends DNode {
         }
       }
     }));
-    return context.end();
+    return context.end(startNode);
   }
 }
 
@@ -198,25 +164,29 @@ class IfNode extends DNode {
     super();
   }
   mount(context: DNodeContext) {
+    const placeholderNode = context.appendNode(document.createComment('If disabled'));
     let mountedChild: null | MountedDNode = null;
-    if (this.condition.value) {
-      mountedChild = context.mountChild(this.child, context.index);
-    }
+    const child = this.child;
 
-    context.watch(this.condition, newCondition => {
-      if (newCondition) {
+    toggleChild(this.condition.value);
+    context.addUndo(this.condition.watch(toggleChild));
+
+    return context.end(placeholderNode);
+
+    function toggleChild(conditionValue: boolean) {
+      if (conditionValue) {
         if (!mountedChild) {
-          mountedChild = context.mountChild(this.child, context.index);
+          mountedChild = context.mountChild(child, context.parentElement, placeholderNode.nextSibling);
+          placeholderNode.textContent = 'If enabled';
         }
       } else {
         if (mountedChild) {
           mountedChild.unmount();
           mountedChild = null;
+          placeholderNode.textContent = 'If disabled';
         }
       }
-    });
-
-    return context.end();
+    }
   }
 }
 
@@ -246,6 +216,5 @@ export function Repeat<T>(vals: IVals<T>, nodeBuilder: (item: T, index: IVal<num
 }
 
 export function mount(tree: DNode, rootElement: HTMLElement) {
-  const rootContext: IDNodeContext = { appendDomNode: node => rootElement.appendChild(node) };
-  tree.mount(new DNodeContext(rootContext, 0));
+  tree.mount(new DNodeContext(rootElement, null));
 }

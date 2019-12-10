@@ -10,16 +10,17 @@ function app(): DNode {
   const todos = new ObservableArray<string>(['a', 'b']);
 
   return Div([
-    Div([
-      TextInput(search),
-      Text(search)
-    ]),
     Button('Increment', () => {
       counter.setValue(counter.value + 1);
-      todos.addAt(todos.items.length, `item ${counter.value}: ${search.value}`);
     }),
     If(counter.map(c => c % 2 === 0), Text(counter.map(c => `${c} par`))),
     If(counter.map(c => c % 2 === 1), Text(counter.map(c => `${c} ímpar`))),
+    Div([
+      TextInput(search),
+    ]),
+    Button('Add item', () => {
+      todos.addAt(todos.items.length, search.value);
+    }),
     Div([
       Repeat(todos, (todo, index) => Div([
         Text(index.map(String)),
