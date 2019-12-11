@@ -2,6 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
+  mode: 'development',
   entry: './src/index.ts',
   module: {
     rules: [
@@ -23,6 +24,8 @@ module.exports = {
     contentBase: './dist'
   },
   plugins: [
-    new HtmlWebpackPlugin()
+    new HtmlWebpackPlugin({
+      template: 'public/index.html'
+    })
   ]
 };

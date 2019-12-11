@@ -22,7 +22,7 @@ export function Val<T>(value: T): IVal<T> {
   return new SimpleVal<T>(value);
 }
 
-export function StrVal(strings: TemplateStringsArray, ...vals: (IVal<string> | string)[]): IVal<string> {
+export function template(strings: TemplateStringsArray, ...vals: (IVal<string> | string)[]): IVal<string> {
   const normalizedVals = vals.map(s => typeof s === 'string' ? Val(s) : s);
   return new TemplateVal(strings, normalizedVals);
 }
@@ -66,7 +66,7 @@ class SimpleVar<T> extends AbstractVal<T> implements IVar<T> {
   }
 }
 
-const noop = () => { };
+export const noop = () => { };
 
 class SimpleVal<T> extends AbstractVal<T> implements IVal<T> {
 
@@ -143,6 +143,10 @@ export class ObservableArray<T> implements IVals<T> {
 
   indexVal(index: number): IVal<number> {
     return this._indexes[index];
+  }
+
+  append(item: T) {
+    this.addAt(this._items.length, item);
   }
 
   addAt(index: number, item: T) {

@@ -1,40 +1,34 @@
-import { DNode, Div, Text, mount, Button, If, TextInput, Repeat, TText } from './dreact';
-import { Var, Val, ObservableArray } from './var';
+import { DNode, Text, mount, Button, If, TextInput, Repeat, El } from './dreact';
+import { Var, Val, ObservableArray, template } from './var';
 
 
 function app(): DNode {
   const counter = Var(1);
-
   const search = Var("");
-
   const todos = new ObservableArray<string>(['a', 'b']);
 
-  return Div([
+  return El('div').children(
     Button('Increment', () => {
       counter.setValue(counter.value + 1);
     }),
-    If(counter.map(c => c % 2 === 0), TText`${counter.map(String)} par`),
-    If(counter.map(c => c % 2 === 1), TText`${counter.map(String)} ímpar`),
-    Div([
+    If(counter.map(c => c % 2 === 0), Text(template`${counter.map(String)} par`)),
+    If(counter.map(c => c % 2 === 1), Text(template`${counter.map(String)} ímpar`)),
+    El('div').children(
       TextInput(search),
-    ]),
+    ),
     Button('Add item', () => {
-      todos.addAt(todos.items.length, search.value);
+      todos.append(search.value);
     }),
-    Div([
-      Repeat(todos, (todo, index) => Div([
+    El('div').children(
+      Repeat(todos, (todo, index) => El('div').children(
         Text(index.map(String)),
         Text(Val(todo)),
         Button('Delete', () => {
           todos.removeAt(index.value);
         })
-      ]))
-    ])
-  ]);
+      ))
+    )
+  );
 }
 
-
-const rootElement = document.createElement('div');
-document.body.appendChild(rootElement);
-
-mount(app(), rootElement);
+mount(app(), document.getElementById('exampleApp')!);

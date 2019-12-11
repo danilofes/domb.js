@@ -1,4 +1,4 @@
-import { IListener, IVal, IUnsubscribe, IVar, IVals, StrVal } from "./var";
+import { IListener, IVal, IUnsubscribe, IVar, IVals, noop, Val } from "./var";
 import { removeFromArray } from "./util";
 
 
@@ -24,9 +24,14 @@ class DNodeContext {
     }
   }
 
-  bindElementAttribute(node: Element, key: string, v: IVal<string | boolean>): IUnsubscribe {
-    setElementAttribute(node, key, v.value);
-    return this.addUndo(v.watch(newValue => setElementAttribute(node, key, newValue)));
+  bindElementAttribute(node: Element, key: string, v: IVal<string | boolean> | string | boolean): IUnsubscribe {
+    if (typeof v === 'string' || typeof v === 'boolean') {
+      setElementAttribute(node, key, v);
+      return noop;
+    } else {
+      setElementAttribute(node, key, v.value);
+      return this.addUndo(v.watch(newValue => setElementAttribute(node, key, newValue)));
+    }
   }
 
   bindInputValue(input: HTMLInputElement, v: IVal<string>): IUnsubscribe {
@@ -54,7 +59,7 @@ class DNodeContext {
 }
 
 function setElementAttribute(element: Element, attr: string, value: string | boolean) {
-  if  (value === false) {
+  if (value === false) {
     element.removeAttribute(attr);
   } else if (value === true) {
     element.setAttribute(attr, '');
@@ -70,19 +75,6 @@ interface MountedDNode {
 
 export abstract class DNode {
   abstract mount(context: DNodeContext): MountedDNode;
-}
-
-class ButtonNode extends DNode {
-  constructor(private text: string, private onClick: () => void) {
-    super();
-  }
-  mount(context: DNodeContext) {
-    const button = document.createElement('button');
-    button.textContent = this.text;
-    button.onclick = this.onClick;
-    context.appendNode(button);
-    return context.end(button);
-  }
 }
 
 class TextInputNode extends DNode {
@@ -120,22 +112,48 @@ class TextNode extends DNode {
 
 
 class ElementNode extends DNode {
-  constructor(private elementType: keyof HTMLElementTagNameMap, private attributes: { [key: string]: IVal<string> }, private children: DNode[]) {
+  private attrs: { [key: string]: IVal<string | boolean> | string | boolean } = {};
+  private childr: DNode[] = [];
+  private eventListeners: { [key: string]: (this: HTMLObjectElement, ev: any) => any } = {};
+
+  constructor(private elementType: keyof HTMLElementTagNameMap) {
     super();
   }
+
   mount(context: DNodeContext) {
     const el = document.createElement(this.elementType);
 
-    for (const attributeKey in this.attributes) {
-      context.bindElementAttribute(el, attributeKey, this.attributes[attributeKey]);
+    for (const attributeKey in this.attrs) {
+      context.bindElementAttribute(el, attributeKey, this.attrs[attributeKey]);
+    }
+
+    for (const eventKey in this.eventListeners) {
+      el.addEventListener(eventKey, this.eventListeners[eventKey]);
     }
 
     context.appendNode(el);
-    for (let i = 0; i < this.children.length; i++) {
-      const child = this.children[i];
+    for (let i = 0; i < this.childr.length; i++) {
+      const child = this.childr[i];
       context.mountChild(child, el, null);
     }
     return context.end(el);
+  }
+
+  attributes(attrs: { [key: string]: IVal<string | boolean> | string | boolean }) {
+    for (const attributeKey in attrs) {
+      this.attrs[attributeKey] = attrs[attributeKey];
+    }
+    return this;
+  }
+
+  children(...nodes: DNode[]) {
+    this.childr = nodes;
+    return this;
+  }
+
+  on<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLObjectElement, ev: HTMLElementEventMap[K]) => any) {
+    this.eventListeners[type] = listener;
+    return this;
   }
 }
 
@@ -201,12 +219,8 @@ class IfNode extends DNode {
 }
 
 
-export function Text(text: IVal<string>): DNode {
-  return new TextNode(text);
-}
-
-export function TText(strings: TemplateStringsArray, ...vals: (IVal<string> | string)[]): DNode {
-  return new TextNode(StrVal(strings, ...vals));
+export function Text(text: IVal<string> | string): DNode {
+  return new TextNode(typeof text === 'string' ? Val(text) : text);
 }
 
 export function TextInput(value: IVar<string>): DNode {
@@ -214,11 +228,13 @@ export function TextInput(value: IVar<string>): DNode {
 }
 
 export function Button(text: string, onClick: () => void): DNode {
-  return new ButtonNode(text, onClick);
+  return new ElementNode('button')
+    .on('click', onClick)
+    .children(Text(text));
 }
 
-export function Div(children: DNode[]): DNode {
-  return new ElementNode('div', {}, children);
+export function El(tagName: keyof HTMLElementTagNameMap): ElementNode {
+  return new ElementNode(tagName);
 }
 
 export function If(condition: IVal<any>, child: DNode): DNode {
