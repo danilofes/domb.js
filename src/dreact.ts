@@ -34,6 +34,11 @@ class DNodeContext {
     }
   }
 
+  bindElementClass(node: Element, className: string, enabled: IVal<boolean>): IUnsubscribe {
+    setElementClass(node, className, enabled.value);
+    return this.addUndo(enabled.watch(newValue => setElementClass(node, className, newValue)));
+  }
+
   bindInputValue(input: HTMLInputElement, v: IVal<string>): IUnsubscribe {
     input.value = v.value;
     return this.addUndo(v.watch(newValue => { input.value = newValue; }));
@@ -65,6 +70,14 @@ function setElementAttribute(element: Element, attr: string, value: string | boo
     element.setAttribute(attr, '');
   } else {
     element.setAttribute(attr, value);
+  }
+}
+
+function setElementClass(element: Element, className: string, enabled: boolean) {
+  if (enabled) {
+    element.classList.add(className);
+  } else {
+    element.classList.remove(className);
   }
 }
 
@@ -115,13 +128,21 @@ class ElementNode extends DNode {
   private attrs: { [key: string]: IVal<string | boolean> | string | boolean } = {};
   private childr: DNode[] = [];
   private eventListeners: { [key: string]: (this: HTMLObjectElement, ev: any) => any } = {};
+  private optionalClasses: { [key: string]: IVal<boolean> } = {};
 
-  constructor(private elementType: keyof HTMLElementTagNameMap) {
+  constructor(private elementType: keyof HTMLElementTagNameMap, private cssClasses?: string) {
     super();
   }
 
   mount(context: DNodeContext) {
     const el = document.createElement(this.elementType);
+    if (this.cssClasses) {
+      el.className = this.cssClasses;
+    }
+
+    for (const className in this.optionalClasses) {
+      context.bindElementClass(el, className, this.optionalClasses[className]);
+    }
 
     for (const attributeKey in this.attrs) {
       context.bindElementAttribute(el, attributeKey, this.attrs[attributeKey]);
