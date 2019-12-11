@@ -24,9 +24,9 @@ class DNodeContext {
     }
   }
 
-  bindElementAttribute(node: Element, key: string, v: IVal<string>): IUnsubscribe {
-    node.setAttribute(key, v.value);
-    return this.addUndo(v.watch(newValue => node.setAttribute(key, newValue)));
+  bindElementAttribute(node: Element, key: string, v: IVal<string | boolean>): IUnsubscribe {
+    setElementAttribute(node, key, v.value);
+    return this.addUndo(v.watch(newValue => setElementAttribute(node, key, newValue)));
   }
 
   bindInputValue(input: HTMLInputElement, v: IVal<string>): IUnsubscribe {
@@ -50,6 +50,16 @@ class DNodeContext {
       mainNode,
       unmount: this.parent ? this.parent.addUndo(unmountFn) : unmountFn
     };
+  }
+}
+
+function setElementAttribute(element: Element, attr: string, value: string | boolean) {
+  if  (value === false) {
+    element.removeAttribute(attr);
+  } else if (value === true) {
+    element.setAttribute(attr, '');
+  } else {
+    element.setAttribute(attr, value);
   }
 }
 
