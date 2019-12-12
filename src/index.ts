@@ -1,34 +1,33 @@
-import { DNode, Text, mount, Button, If, TextInput, Repeat, El } from './dreact';
-import { Var, Val, ObservableArray, template } from './var';
+import { DNode, mount, If, TextInput, Repeat, El } from './dnodes/dnodes';
+import { Var, VarArray, template } from './vars/vars';
 
 
-function app(): DNode {
-  const counter = Var(1);
-  const search = Var("");
-  const todos = new ObservableArray<string>(['a', 'b']);
+function myApp(): DNode {
+  const
+    todoInput = Var(''),
+    todoList = VarArray<string>([]);
 
   return El('div').children(
-    Button('Increment', () => {
-      counter.setValue(counter.value + 1);
-    }),
-    If(counter.map(c => c % 2 === 0), Text(template`${counter.map(String)} par`)),
-    If(counter.map(c => c % 2 === 1), Text(template`${counter.map(String)} ímpar`)),
-    El('div').children(
-      TextInput(search),
+    El('form')
+      .on('submit', (e) => {
+        e.preventDefault();
+        todoList.append(todoInput.value);
+        todoInput.setValue('');
+      })
+      .children(
+        TextInput(todoInput),
+        El('button').text('Add item')
+      ),
+    El('ul').children(
+      Repeat(todoList, (todo, index) =>
+        El('li').children(
+          El('span').text(template`Item ${index.map(String)}: ${todo}`),
+          El('button').text('Delete')
+            .on('click', () => todoList.removeAt(index.value))
+        ))
     ),
-    Button('Add item', () => {
-      todos.append(search.value);
-    }),
-    El('div').children(
-      Repeat(todos, (todo, index) => El('div').children(
-        Text(index.map(String)),
-        Text(Val(todo)),
-        Button('Delete', () => {
-          todos.removeAt(index.value);
-        })
-      ))
-    )
+    If(todoList.length.map(n => n === 0), El('em').text('There is nothing in your todo list')),
   );
 }
 
-mount(app(), document.getElementById('exampleApp')!);
+mount(myApp(), document.getElementById('exampleApp')!);

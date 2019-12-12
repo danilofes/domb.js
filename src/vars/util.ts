@@ -5,3 +5,5 @@ export function removeFromArray<T>(array: T[], item: T) {
     array.splice(index, 1);
   }
 }
+
+export const noop = () => { };
