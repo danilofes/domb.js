@@ -1,5 +1,6 @@
 import { DNode, mount, If, Input, Repeat, El } from './dnodes/dnodes';
-import { Var, VarArray, template } from './vars/vars';
+import { Var, VarArray } from './vars/vars';
+import { isEmpty } from './vars/util';
 
 
 function myApp(): DNode {
@@ -16,7 +17,7 @@ function myApp(): DNode {
       })
       .children(
         Input(todoInput).attributes({ 'placeholder': 'What needs to be done?' }),
-        El('button').text('Add todo').attributes({ 'disabled': todoInput.map(s => s.length === 0) })
+        El('button').text('Add todo').attributes({ 'disabled': todoInput.map(isEmpty) })
       ),
     El('ul').children(
       Repeat(todoList, (todo, index) =>
@@ -26,7 +27,8 @@ function myApp(): DNode {
             .on('click', () => todoList.removeAt(index.value))
         ))
     ),
-    If(todoList.length.map(n => n === 0), El('em').text('There is nothing in your todo list')),
+    If(todoList.map(isEmpty),
+      El('em').text('There is nothing in your todo list')),
   );
 }
 

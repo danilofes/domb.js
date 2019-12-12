@@ -102,20 +102,20 @@ class MappedVar<T, U> extends AbstractVal<U> {
 }
 
 
-interface ArrayOpAdd<T> {
+export interface ArrayOpAdd<T> {
   type: 'add';
   index: number;
   item: T;
 }
 
-interface ArrayOpRemove {
+export interface ArrayOpRemove {
   type: 'remove';
   index: number;
 }
 
-type ArrayOp<T> = ArrayOpAdd<T> | ArrayOpRemove;
+export type ArrayOp<T> = ArrayOpAdd<T> | ArrayOpRemove;
 
-interface ArrayDiff<T> {
+export interface ArrayDiff<T> {
   value: readonly T[],
   prevValue: readonly T[],
   operations: ArrayOp<T>[]
@@ -124,37 +124,32 @@ interface ArrayDiff<T> {
 export type IArrayListener<T> = (diff: ArrayDiff<T>) => void;
 
 
-export interface IVals<T> {
+export interface IVals<T> extends IVal<readonly T[]> {
   items: readonly T[],
-  watch: (listener: IArrayListener<T>) => IUnsubscribe,
+  watchArray: (listener: IArrayListener<T>) => IUnsubscribe,
   indexVal: (index: number) => IVal<number>
 }
 
-export class ObservableArray<T> implements IVals<T> {
+export class ObservableArray<T> extends AbstractVal<readonly T[]> implements IVals<T> {
   private _items: T[];
   private _indexes: SimpleVar<number>[];
   private listeners: IArrayListener<T>[];
   readonly length: IVal<number>;
 
   constructor(items: T[]) {
+    super();
     this._items = items;
     this._indexes = items.map((item, index) => new SimpleVar(index));
     this.listeners = [];
-    const outerThis = this;
-
-    class LengthVal extends AbstractVal<number> {
-      get value() {
-        return outerThis._items.length;
-      }
-      watch(listener: IListener<number>): IUnsubscribe {
-        return outerThis.watch(diff => listener(diff.value.length, diff.prevValue.length));
-      }
-    }
-    this.length = new LengthVal();
+    this.length = new MappedVar<readonly T[], number>(this, array => array.length);
   }
 
   get items(): readonly T[] {
     return this._items;
+  }
+
+  get value(): readonly T[] {
+    return this._items as readonly T[];
   }
 
   indexVal(index: number): IVal<number> {
@@ -192,9 +187,13 @@ export class ObservableArray<T> implements IVals<T> {
     }
   }
 
-  watch(listener: IArrayListener<T>) {
+  watchArray(listener: IArrayListener<T>) {
     this.listeners.push(listener);
     return () => removeFromArray(this.listeners, listener);
+  }
+
+  watch(listener: IListener<readonly T[]>) {
+    return this.watchArray(diff => listener(diff.value, diff.prevValue));
   }
 
 }

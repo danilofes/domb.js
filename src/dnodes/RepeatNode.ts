@@ -13,7 +13,7 @@ export class RepeatNode<T> implements DNode {
       const item = this.children.items[i];
       mountedChild.push(context.mountChild(this.nodeBuilder(item, this.children.indexVal(i)), context.parentElement, endNode));
     }
-    context.addUndo(this.children.watch(diff => {
+    context.addUndo(this.children.watchArray(diff => {
       for (const op of diff.operations) {
         if (op.type === 'add') {
           const position = op.index < mountedChild.length ? mountedChild[op.index].mainNode : null;

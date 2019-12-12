@@ -7,3 +7,7 @@ export function removeFromArray<T>(array: T[], item: T) {
 }
 
 export const noop = () => { };
+
+export function isEmpty(value: { length: number }): boolean {
+  return value.length === 0;
+}
