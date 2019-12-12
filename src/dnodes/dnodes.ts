@@ -1,27 +1,21 @@
-import { TextNode } from "./TextNode";
 import { IVal, IVar, Val, IVals } from "../vars/vars";
 import { DNode, DNodeContext } from "./DNode";
-import { ElementNode, TextInputNode } from "./ElementNode";
+import { TextNode } from "./TextNode";
+import { ElementNode, InputNode } from "./ElementNode";
 import { IfNode } from "./IfNode";
 import { RepeatNode } from "./RepeatNode";
 
-export { DNode } from "./DNode";
+export { DNode, DNodeContext };
 
 export function Text(text: IVal<string> | string): DNode {
   return new TextNode(typeof text === 'string' ? Val(text) : text);
 }
 
-export function TextInput(value: IVar<string>): DNode {
-  return new TextInputNode(value);
+export function Input(variable: IVar<string>): InputNode {
+  return new InputNode().bindTo(variable);
 }
 
-export function Button(text: string, onClick: () => void): DNode {
-  return new ElementNode('button')
-    .on('click', onClick)
-    .children(Text(text));
-}
-
-export function El(tagName: keyof HTMLElementTagNameMap): ElementNode {
+export function El<K extends keyof HTMLElementTagNameMap>(tagName: K): ElementNode<K> {
   return new ElementNode(tagName);
 }
 

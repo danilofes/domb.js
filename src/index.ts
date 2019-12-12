@@ -1,4 +1,4 @@
-import { DNode, mount, If, TextInput, Repeat, El } from './dnodes/dnodes';
+import { DNode, mount, If, Input, Repeat, El } from './dnodes/dnodes';
 import { Var, VarArray, template } from './vars/vars';
 
 
@@ -15,13 +15,13 @@ function myApp(): DNode {
         todoInput.setValue('');
       })
       .children(
-        TextInput(todoInput),
-        El('button').text('Add item')
+        Input(todoInput).attributes({ 'placeholder': 'What needs to be done?' }),
+        El('button').text('Add todo').attributes({ 'disabled': todoInput.map(s => s.length === 0) })
       ),
     El('ul').children(
       Repeat(todoList, (todo, index) =>
         El('li').children(
-          El('span').text(template`Item ${index.map(String)}: ${todo}`),
+          El('span').text(todo),
           El('button').text('Delete')
             .on('click', () => todoList.removeAt(index.value))
         ))

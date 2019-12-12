@@ -2,13 +2,13 @@ import { DNode, DNodeContext } from "./DNode";
 import { IVal, IVar, Val } from "../vars/vars";
 import { TextNode } from "./TextNode";
 
-export class ElementNode implements DNode {
+export class ElementNode<K extends keyof HTMLElementTagNameMap> implements DNode {
   private attrs: { [key: string]: IVal<string | boolean> | string | boolean } = {};
   private childr: DNode[] = [];
   private eventListeners: { [key: string]: (this: HTMLObjectElement, ev: any) => any } = {};
   private optionalClasses: { [key: string]: IVal<boolean> } = {};
 
-  constructor(private elementType: keyof HTMLElementTagNameMap, private cssClasses?: string) { }
+  constructor(private elementType: K, private cssClasses?: string) { }
 
   mount(context: DNodeContext) {
     const el = document.createElement(this.elementType);
@@ -28,12 +28,19 @@ export class ElementNode implements DNode {
       el.addEventListener(eventKey, this.eventListeners[eventKey]);
     }
 
+    this.onMountElement(context, el);
     context.appendNode(el);
+
     for (let i = 0; i < this.childr.length; i++) {
       const child = this.childr[i];
       context.mountChild(child, el, null);
     }
+
     return context.end(el);
+  }
+
+  onMountElement(context: DNodeContext, el: HTMLElementTagNameMap[K]) {
+    // subclasses may override
   }
 
   attributes(attrs: { [key: string]: IVal<string | boolean> | string | boolean }) {
@@ -48,8 +55,8 @@ export class ElementNode implements DNode {
     return this;
   }
 
-  text(text: IVal<string>): ElementNode
-  text(text: string): ElementNode
+  text(text: IVal<string>): this
+  text(text: string): this
   text(text: IVal<string> | string) {
     this.childr = [new TextNode(typeof text === 'string' ? Val(text) : text)];
     return this;
@@ -61,18 +68,27 @@ export class ElementNode implements DNode {
   }
 }
 
-export class TextInputNode implements DNode {
-  constructor(private value: IVar<string>) { }
+export class InputNode extends ElementNode<'input'> {
+  private variable?: IVar<string>;
 
-  mount(context: DNodeContext) {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.oninput = event => {
-      const newValue = input.value;
-      this.value.setValue(newValue);
+  constructor() {
+    super('input');
+  }
+
+  onMountElement(context: DNodeContext, el: HTMLInputElement) {
+    if (this.variable) {
+      el.value = this.variable.value;
+      context.addUndo(this.variable.watch(newValue => {
+        el.value = newValue;
+      }));
+      el.addEventListener('input', () => {
+        this.variable!.setValue(el.value);
+      });
     }
-    context.bindInputValue(input, this.value);
-    context.appendNode(input);
-    return context.end(input);
+  }
+
+  bindTo(variable: IVar<string>): this {
+    this.variable = variable;
+    return this;
   }
 }
