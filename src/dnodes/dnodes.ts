@@ -19,8 +19,8 @@ export function El<K extends keyof HTMLElementTagNameMap>(tagName: K): ElementNo
   return new ElementNode(tagName);
 }
 
-export function If(condition: IVal<any>, child: DNode): DNode {
-  return new IfNode(condition, child);
+export function If(condition: IVal<any>, thenChild: DNode, elseChild?: DNode): DNode {
+  return new IfNode(condition, thenChild, elseChild);
 }
 
 export function Repeat<T>(vals: IVals<T>, nodeBuilder: (item: T, index: IVal<number>) => DNode): DNode {

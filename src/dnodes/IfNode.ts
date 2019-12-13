@@ -2,12 +2,13 @@ import { DNode, MountedDNode, DNodeContext } from "./DNode";
 import { IVal } from "../vars/vars";
 
 export class IfNode implements DNode {
-  constructor(private condition: IVal<any>, private child: DNode) { }
+  constructor(private condition: IVal<any>, private thenChild: DNode, private elseChild?: DNode) { }
 
   mount(context: DNodeContext) {
     const placeholderNode = context.appendNode(document.createComment('If disabled'));
-    let mountedChild: null | MountedDNode = null;
-    const child = this.child;
+    let mountedThenChild: null | MountedDNode = null;
+    let mountedElseChild: null | MountedDNode = null;
+    const { thenChild, elseChild } = this;
 
     toggleChild(this.condition.value);
     context.addUndo(this.condition.watch(toggleChild));
@@ -16,15 +17,22 @@ export class IfNode implements DNode {
 
     function toggleChild(conditionValue: boolean) {
       if (conditionValue) {
-        if (!mountedChild) {
-          mountedChild = context.mountChild(child, context.parentElement, placeholderNode.nextSibling);
-          placeholderNode.textContent = 'If enabled';
+        placeholderNode.textContent = 'If enabled';
+        if (!mountedThenChild) {
+          mountedThenChild = context.mountChild(thenChild, context.parentElement, placeholderNode.nextSibling);
+        }
+        if (mountedElseChild) {
+          mountedElseChild.unmount();
+          mountedElseChild = null;
         }
       } else {
-        if (mountedChild) {
-          mountedChild.unmount();
-          mountedChild = null;
-          placeholderNode.textContent = 'If disabled';
+        placeholderNode.textContent = 'If disabled';
+        if (!mountedElseChild && elseChild) {
+          mountedElseChild = context.mountChild(elseChild, context.parentElement, placeholderNode.nextSibling);
+        }
+        if (mountedThenChild) {
+          mountedThenChild.unmount();
+          mountedThenChild = null;
         }
       }
     }

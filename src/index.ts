@@ -1,5 +1,5 @@
 import { DNode, mount, If, Input, Repeat, El } from './dnodes/dnodes';
-import { Var, VarArray } from './vars/vars';
+import { Var, VarArray, template } from './vars/vars';
 import { isEmpty } from './vars/util';
 
 
@@ -28,7 +28,8 @@ function myApp(): DNode {
         ))
     ),
     If(todoList.map(isEmpty),
-      El('em').text('There is nothing in your todo list')),
+      El('em').text('There is nothing in your todo list'),
+      El('div').text(template`There are ${todoList.length.map(String)} items in your todo list`)),
   );
 }
 
