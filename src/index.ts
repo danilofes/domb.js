@@ -1,36 +1,5 @@
-import { DNode, mount, If, Input, Repeat, El } from './dnodes/dnodes';
-import { Var, VarArray, template } from './vars/vars';
-import { isEmpty } from './vars/util';
+import { mount } from './dnodes/dnodes';
+import { todoApp } from './examples/todoApp';
 
 
-function myApp(): DNode {
-  const
-    todoInput = Var(''),
-    todoList = VarArray<string>([]);
-
-  return El('div').children(
-    El('form')
-      .on('submit', (e) => {
-        e.preventDefault();
-        todoList.append(todoInput.value);
-        todoInput.setValue('');
-      })
-      .children(
-        Input(todoInput).attributes({ 'placeholder': 'What needs to be done?' }),
-        El('button').text('Add todo').attributes({ 'disabled': todoInput.map(isEmpty) })
-      ),
-    El('ul').children(
-      Repeat(todoList, (todo, index) =>
-        El('li').children(
-          El('span').text(todo),
-          El('button').text('Delete')
-            .on('click', () => todoList.removeAt(index.value))
-        ))
-    ),
-    If(todoList.map(isEmpty),
-      El('em').text('There is nothing in your todo list'),
-      El('div').text(template`There are ${todoList.length.map(String)} items in your todo list`)),
-  );
-}
-
-mount(myApp(), document.getElementById('exampleApp')!);
+mount(todoApp(), document.getElementById('todoApp')!);

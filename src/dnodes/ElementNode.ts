@@ -69,26 +69,44 @@ export class ElementNode<K extends keyof HTMLElementTagNameMap> implements DNode
 }
 
 export class InputNode extends ElementNode<'input'> {
-  private variable?: IVar<string>;
+  private valueVar?: IVar<string>;
+  private checkedVar?: IVar<boolean>;
 
   constructor() {
     super('input');
   }
 
   onMountElement(context: DNodeContext, el: HTMLInputElement) {
-    if (this.variable) {
-      el.value = this.variable.value;
-      context.addUndo(this.variable.watch(newValue => {
+    if (this.valueVar) {
+      el.value = this.valueVar.value;
+      context.addUndo(this.valueVar.watch(newValue => {
         el.value = newValue;
       }));
       el.addEventListener('input', () => {
-        this.variable!.setValue(el.value);
+        this.valueVar!.setValue(el.value);
+      });
+    }
+
+    if (this.checkedVar) {
+      el.checked = this.checkedVar.value;
+      context.addUndo(this.checkedVar.watch(newValue => {
+        el.checked = newValue;
+      }));
+      el.addEventListener('input', () => {
+        this.checkedVar!.setValue(el.checked);
       });
     }
   }
 
-  bindTo(variable: IVar<string>): this {
-    this.variable = variable;
+  bindValue(valueVar: IVar<string>): this {
+    this.valueVar = valueVar;
     return this;
   }
+
+  bindChecked(checkedVar: IVar<boolean>): this {
+    this.checkedVar = checkedVar;
+    return this;
+  }
+
 }
+

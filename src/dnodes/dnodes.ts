@@ -11,8 +11,8 @@ export function Text(text: IVal<string> | string): DNode {
   return new TextNode(typeof text === 'string' ? Val(text) : text);
 }
 
-export function Input(variable: IVar<string>): InputNode {
-  return new InputNode().bindTo(variable);
+export function Input(inputType: string): InputNode {
+  return new InputNode().attributes({ 'type': inputType });
 }
 
 export function El<K extends keyof HTMLElementTagNameMap>(tagName: K): ElementNode<K> {
@@ -23,7 +23,7 @@ export function If(condition: IVal<any>, thenChild: DNode, elseChild?: DNode): D
   return new IfNode(condition, thenChild, elseChild);
 }
 
-export function Repeat<T>(vals: IVals<T>, nodeBuilder: (item: T, index: IVal<number>) => DNode): DNode {
+export function Repeat<T>(vals: IVals<T>, nodeBuilder: (item: IVar<T>, index: IVal<number>) => DNode): DNode {
   return new RepeatNode(vals, nodeBuilder);
 }
 
