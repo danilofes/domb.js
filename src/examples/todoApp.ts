@@ -1,6 +1,6 @@
 import { DNode, If, Input, Repeat, El } from '../dnodes/dnodes';
-import { Var, VarArray, template, field } from '../vars/vars';
-import { isEmpty } from '../vars/util';
+import { Var, Vars, template, field, map } from '../vars/vars';
+import { isEmpty, isZero } from '../vars/util';
 
 interface TodoItem {
   done: boolean,
@@ -10,8 +10,7 @@ interface TodoItem {
 export function todoApp(): DNode {
   const
     todoInput = Var(''),
-    checkedInput = Var(false),
-    todoList = VarArray<TodoItem>([]);
+    todoList = Vars<TodoItem>();
 
   return El('div').children(
     El('form')
@@ -22,7 +21,7 @@ export function todoApp(): DNode {
       })
       .children(
         Input('text').attributes({ 'placeholder': 'What needs to be done?' }).bindValue(todoInput),
-        El('button').text('Add todo').attributes({ 'disabled': todoInput.map(isEmpty) })
+        El('button').text('Add todo').attributes({ 'disabled': map(todoInput, isEmpty) })
       ),
     El('ul').children(
       Repeat(todoList, (todo, index) =>
@@ -30,11 +29,11 @@ export function todoApp(): DNode {
           Input('checkbox').attributes({ 'type': 'checkbox' }).bindChecked(field(todo, 'done')),
           El('span').text(field(todo, 'description')),
           El('button').text('x')
-            .on('click', () => todoList.removeAt(index.value))
+            .on('click', () => todoList.deleteAt(index.value))
         ))
     ),
-    If(todoList.map(isEmpty),
+    If(map(todoList.length, isZero),
       El('em').text('There is nothing in your todo list'),
-      El('div').text(template`There are ${todoList.length.map(String)} items in your todo list`)),
+      El('div').text(template`There are ${map(todoList.length, String)} items in your todo list`)),
   );
 }

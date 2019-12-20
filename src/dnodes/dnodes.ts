@@ -1,4 +1,4 @@
-import { IVal, IVar, Val, IVals } from "../vars/vars";
+import { IVal, IVar, Val, IVars } from "../vars/vars";
 import { DNode, DNodeContext } from "./DNode";
 import { TextNode } from "./TextNode";
 import { ElementNode, InputNode } from "./ElementNode";
@@ -23,8 +23,8 @@ export function If(condition: IVal<any>, thenChild: DNode, elseChild?: DNode): D
   return new IfNode(condition, thenChild, elseChild);
 }
 
-export function Repeat<T>(vals: IVals<T>, nodeBuilder: (item: IVar<T>, index: IVal<number>) => DNode): DNode {
-  return new RepeatNode(vals, nodeBuilder);
+export function Repeat<T>(vars: IVars<T>, nodeBuilder: (item: IVar<T>, index: IVal<number>) => DNode): DNode {
+  return new RepeatNode(vars, nodeBuilder);
 }
 
 export function mount(tree: DNode, rootElement: HTMLElement) {

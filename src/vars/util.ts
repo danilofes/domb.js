@@ -11,3 +11,7 @@ export const noop = () => { };
 export function isEmpty(value: { length: number }): boolean {
   return value.length === 0;
 }
+
+export function isZero(value: number): boolean {
+  return value === 0;
+}
