@@ -21,11 +21,16 @@ export function Vars<T>(value?: T[]): ObservableArray<T> {
   return new ObservableArray<T>(value);
 }
 
-export function field<T extends {}, K extends keyof T>(variable: IVar<T>, field: K): IVar<T[K]> {
-  return new MappedVar<T, T[K]>(
-    variable,
-    (vt: T) => vt[field],
-    (vu: T[K], prevVt: T) => ({ ...prevVt, [field]: vu }));
+export function field<T extends {}, K extends keyof T>(variable: IVar<T>, field: K): IVar<T[K]>;
+export function field<T extends {}, K extends keyof T>(variable: IVal<T>, field: K): IVal<T[K]>;
+export function field<T extends {}, K extends keyof T>(variable: IVal<T> | IVar<T>, field: K): IVal<T[K]> | IVar<T> {
+  if ('setValue' in variable) {
+    return new MappedVar<T, T[K]>(variable,
+      (vt: T) => vt[field],
+      (vu: T[K], prevVt: T) => ({ ...prevVt, [field]: vu }));
+  } else {
+    return new MappedVal<T, T[K]>(variable, (vt: T) => vt[field]);
+  }
 }
 
 export function map<T, U>(value: IVal<T>, mappingFn: (v: T) => U): IVal<U> {

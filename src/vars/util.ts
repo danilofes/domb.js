@@ -1,9 +1,21 @@
 
-export function removeFromArray<T>(array: T[], item: T) {
+export function arrayRemove<T>(array: T[], item: T): void {
   const index = array.indexOf(item);
   if (index > -1) {
     array.splice(index, 1);
   }
+}
+
+export function arrayRemoveAt<T>(array: T[], index: number): T[] {
+  const result = [...array];
+  result.splice(index, 1);
+  return result;
+}
+
+export function arrayReplaceAt<T>(array: T[], index: number, item: T): T[] {
+  const result = [...array];
+  result[index] = item;
+  return result;
 }
 
 export const noop = () => { };

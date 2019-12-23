@@ -1,5 +1,5 @@
 import { IUnsubscribe, IVal } from "../vars/vars";
-import { removeFromArray, noop } from "../vars/util";
+import { arrayRemove, noop } from "../vars/util";
 
 
 export interface DNode {
@@ -28,7 +28,7 @@ export class DNodeContext {
   addUndo<T>(unsubFn: IUnsubscribe): IUnsubscribe {
     this.undoList.push(unsubFn);
     return () => {
-      removeFromArray(this.undoList, unsubFn);
+      arrayRemove(this.undoList, unsubFn);
       unsubFn();
     }
   }

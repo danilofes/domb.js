@@ -1,5 +1,5 @@
 import { IVal, IVar, IOnChange, IValsHandler, IVars } from "./Var";
-import { removeFromArray } from "./util";
+import { arrayRemove } from "./util";
 import { SimpleVar } from "./SimpleVar";
 
 
@@ -82,7 +82,7 @@ export class ObservableArray<T> implements IVars<T> {
 
   watch(handler: IValsHandler<T>) {
     this.handlers.push(handler);
-    return () => removeFromArray(this.handlers, handler);
+    return () => arrayRemove(this.handlers, handler);
   }
 
   private updateIndexes(startAt: number) {

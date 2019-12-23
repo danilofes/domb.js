@@ -1,4 +1,4 @@
-import { removeFromArray, noop } from "./util";
+import { arrayRemove, noop } from "./util";
 import { IVal, IOnChange, IUnsubscribe, IVar } from "./Var";
 
 
@@ -31,7 +31,7 @@ export class SimpleVar<T> extends AbstractVal<T> implements IVar<T> {
 
   watch(listener: IOnChange<T>) {
     this.listeners.push(listener);
-    return () => removeFromArray(this.listeners, listener);
+    return () => arrayRemove(this.listeners, listener);
   }
 
   clearListeners() {

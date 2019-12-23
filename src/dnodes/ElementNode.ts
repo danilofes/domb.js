@@ -70,7 +70,8 @@ export class ElementNode<K extends keyof HTMLElementTagNameMap> implements DNode
 
 export class InputNode extends ElementNode<'input'> {
   private valueVar?: IVar<string>;
-  private checkedVar?: IVar<boolean>;
+  private checkedVal?: IVal<boolean>;
+  private onChangeChecked?: (checked: boolean) => void;
 
   constructor() {
     super('input');
@@ -87,13 +88,15 @@ export class InputNode extends ElementNode<'input'> {
       });
     }
 
-    if (this.checkedVar) {
-      el.checked = this.checkedVar.value;
-      context.addUndo(this.checkedVar.watch(newValue => {
+    if (this.checkedVal) {
+      el.checked = this.checkedVal.value;
+      context.addUndo(this.checkedVal.watch(newValue => {
         el.checked = newValue;
       }));
+    }
+    if (this.onChangeChecked) {
       el.addEventListener('input', () => {
-        this.checkedVar!.setValue(el.checked);
+        this.onChangeChecked!(el.checked);
       });
     }
   }
@@ -103,8 +106,15 @@ export class InputNode extends ElementNode<'input'> {
     return this;
   }
 
-  bindChecked(checkedVar: IVar<boolean>): this {
-    this.checkedVar = checkedVar;
+  bindChecked(checkedVar: IVar<boolean>): this;
+  bindChecked(checkedVar: IVal<boolean>, setValue: (newValue: boolean) => void): this;
+  bindChecked(checkedVar: IVar<boolean> | IVal<boolean>, setValue?: (newValue: boolean) => void): this {
+    if (setValue) {
+      this.onChangeChecked = setValue;
+    } else if ('setValue' in checkedVar) {
+      this.onChangeChecked = checkedVar.setValue.bind(checkedVar);
+    }
+    this.checkedVal = checkedVar;
     return this;
   }
 
