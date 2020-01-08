@@ -95,7 +95,7 @@ export class InputNode extends ElementNode<'input'> {
       }));
     }
     if (this.onChangeChecked) {
-      el.addEventListener('input', () => {
+      el.addEventListener('click', () => {
         this.onChangeChecked!(el.checked);
       });
     }
