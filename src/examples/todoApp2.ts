@@ -1,4 +1,4 @@
-import { DNode, If, Input, El, Repeat2 } from '../dnodes/dnodes';
+import { DNode, If, Input, El, Repeat2 as Repeat } from '../dnodes/dnodes';
 import { Var, template, field, map } from '../vars/vars';
 import { isEmpty, arrayReplaceAt, arrayRemoveAt } from '../vars/util';
 
@@ -36,7 +36,7 @@ export function todoApp2(): DNode {
         El('button').text('Add todo').attributes({ 'disabled': map(todoInput, isEmpty) })
       ),
     El('ul').children(
-      Repeat2(todoList, (todo, index) =>
+      Repeat(todoList, (todo, index) =>
         El('li').children(
           Input('checkbox').attributes({ 'type': 'checkbox' }).bindChecked(field(todo, 'done'), checked => toggleTodo(index, checked)),
           El('span').text(field(todo, 'description')),
@@ -46,6 +46,6 @@ export function todoApp2(): DNode {
     ),
     If(map(todoList, isEmpty),
       El('em').text('There is nothing in your todo list'),
-      El('div').text(template`There are ${map(todoList, l => String(l.length))} items in your todo list`)),
+      El('div').text(template`There are ${map(field(todoList, 'length'), String)} items in your todo list`)),
   );
 }
