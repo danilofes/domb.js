@@ -1,6 +1,6 @@
 import { IVal, IVar, IOnChange, IValsHandler, IVars } from "./Var";
 import { arrayRemove } from "./util";
-import { SimpleVar } from "./SimpleVar";
+import { SimpleVar, AbstractVal } from "./SimpleVar";
 
 
 export class ObservableArray<T> implements IVars<T> {
@@ -14,17 +14,19 @@ export class ObservableArray<T> implements IVars<T> {
     this.handlers = [];
     const self = this;
 
-    this.length = {
+    class LengthVal extends AbstractVal<number>{
       get value() {
         return self.entries.length;
-      },
+      }
       watch(onChange: IOnChange<number>) {
         return self.watch({
           onInsert: () => onChange(self.entries.length, self.entries.length - 1),
           onDelete: () => onChange(self.entries.length, self.entries.length + 1)
         });
       }
-    };
+    }
+
+    this.length = new LengthVal();
   }
 
   indexValAt(index: number): IVal<number> {
