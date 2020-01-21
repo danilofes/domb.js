@@ -4,6 +4,7 @@ import { TextNode } from "./TextNode";
 
 export class ElementNode<K extends keyof HTMLElementTagNameMap> implements DNode {
   private attrs: { [key: string]: IVal<string | boolean> | string | boolean } = {};
+  private props: { [key: string]: IVal<any> | any } = {};
   private childr: DNode[] = [];
   private eventListeners: { [key: string]: (this: HTMLObjectElement, ev: any) => any } = {};
   private optionalClasses: { [key: string]: IVal<boolean> } = {};
@@ -24,6 +25,10 @@ export class ElementNode<K extends keyof HTMLElementTagNameMap> implements DNode
       context.bindElementAttribute(el, attributeKey, this.attrs[attributeKey]);
     }
 
+    for (const propKey in this.props) {
+      context.bindElementProperty(el, propKey, this.props[propKey]);
+    }
+
     for (const eventKey in this.eventListeners) {
       el.addEventListener(eventKey, this.eventListeners[eventKey]);
     }
@@ -39,14 +44,17 @@ export class ElementNode<K extends keyof HTMLElementTagNameMap> implements DNode
     return context.end(el);
   }
 
-  onMountElement(context: DNodeContext, el: HTMLElementTagNameMap[K]) {
+  protected onMountElement(context: DNodeContext, el: HTMLElementTagNameMap[K]) {
     // subclasses may override
   }
 
   attributes(attrs: { [key: string]: IVal<string | boolean> | string | boolean }) {
-    for (const attributeKey in attrs) {
-      this.attrs[attributeKey] = attrs[attributeKey];
-    }
+    Object.assign(this.attrs, attrs);
+    return this;
+  }
+
+  property<P extends string & keyof HTMLElementTagNameMap[K]>(key: P, v: IVal<HTMLElementTagNameMap[K][P]> | HTMLElementTagNameMap[K][P]) {
+    this.props[key] = v;
     return this;
   }
 
@@ -69,52 +77,31 @@ export class ElementNode<K extends keyof HTMLElementTagNameMap> implements DNode
 }
 
 export class InputNode extends ElementNode<'input'> {
-  private valueVar?: IVar<string>;
-  private checkedVal?: IVal<boolean>;
-  private onChangeChecked?: (checked: boolean) => void;
-
   constructor() {
     super('input');
   }
 
-  onMountElement(context: DNodeContext, el: HTMLInputElement) {
-    if (this.valueVar) {
-      el.value = this.valueVar.value;
-      context.addUndo(this.valueVar.watch(newValue => {
-        el.value = newValue;
-      }));
-      el.addEventListener('input', () => {
-        this.valueVar!.setValue(el.value);
-      });
-    }
-
-    if (this.checkedVal) {
-      el.checked = this.checkedVal.value;
-      context.addUndo(this.checkedVal.watch(newValue => {
-        el.checked = newValue;
-      }));
-    }
-    if (this.onChangeChecked) {
-      el.addEventListener('click', () => {
-        this.onChangeChecked!(el.checked);
-      });
-    }
-  }
-
   bindValue(valueVar: IVar<string>): this {
-    this.valueVar = valueVar;
+    this.property('value', valueVar);
+    this.on('input', ev => {
+      valueVar.setValue((ev.currentTarget as HTMLInputElement).value);
+    });
     return this;
   }
 
   bindChecked(checkedVar: IVar<boolean>): this;
   bindChecked(checkedVar: IVal<boolean>, setValue: (newValue: boolean) => void): this;
   bindChecked(checkedVar: IVar<boolean> | IVal<boolean>, setValue?: (newValue: boolean) => void): this {
+    this.property('checked', checkedVar);
     if (setValue) {
-      this.onChangeChecked = setValue;
+      this.on('click', ev => {
+        setValue((ev.currentTarget as HTMLInputElement).checked);
+      });
     } else if ('setValue' in checkedVar) {
-      this.onChangeChecked = checkedVar.setValue.bind(checkedVar);
+      this.on('click', ev => {
+        checkedVar.setValue((ev.currentTarget as HTMLInputElement).checked);
+      });
     }
-    this.checkedVal = checkedVar;
     return this;
   }
 

@@ -43,6 +43,16 @@ export class DNodeContext {
     }
   }
 
+  bindElementProperty(node: Element, key: string, v: IVal<any> | any): IUnsubscribe {
+    if (!('watch' in v)) {
+      setElementProperty(node, key, v);
+      return noop;
+    } else {
+      setElementProperty(node, key, v.value);
+      return this.addUndo(v.watch((newValue: any) => setElementProperty(node, key, newValue)));
+    }
+  }
+
   bindElementClass(node: Element, className: string, enabled: IVal<boolean>): IUnsubscribe {
     setElementClass(node, className, enabled.value);
     return this.addUndo(enabled.watch(newValue => setElementClass(node, className, newValue)));
@@ -80,6 +90,10 @@ function setElementAttribute(element: Element, attr: string, value: string | boo
   } else {
     element.setAttribute(attr, value);
   }
+}
+
+function setElementProperty(element: Element, propKey: string, value: any) {
+  (element as any)[propKey] = value;
 }
 
 function setElementClass(element: Element, className: string, enabled: boolean) {
