@@ -1,4 +1,4 @@
-import { DNode, If, Input, El, Repeat2 as Repeat } from '../dnodes/dnodes';
+import { DNode, If, Input, El, Repeat } from '../dnodes/dnodes';
 import { Var, template } from '../vars/vars';
 import { isEmpty, arrayReplaceAt, arrayRemoveAt } from '../vars/util';
 

@@ -1,8 +1,10 @@
-import { IVar, IVal, IVars } from "./Var";
-import { MappedVar, MappedVal, SimpleVar, ConstVal, TemplateVal } from "./SimpleVar";
-import { ObservableArray } from "./ObservableArray";
+import { IVar, IVal, IVars } from "./vars-api";
+import { SimpleVar } from "./SimpleVar";
+import { MutableArrayVar } from "./MutableArrayVar";
+import { TemplateVal } from "./TemplateVal";
+import { ConstVal } from "./ConstVal";
 
-export * from "./Var";
+export * from "./vars-api";
 
 export function Var<T>(value: T): SimpleVar<T> {
   return new SimpleVar<T>(value);
@@ -17,8 +19,8 @@ export function template(strings: TemplateStringsArray, ...vals: (IVal<string> |
   return new TemplateVal(strings, normalizedVals);
 }
 
-export function Vars<T>(value?: T[]): ObservableArray<T> {
-  return new ObservableArray<T>(value);
+export function Vars<T>(value?: T[]): IVars<T> {
+  return new MutableArrayVar<T>(value);
 }
 
 export function forEach<T>(vars: IVars<T>, consumer: (item: IVar<T>, index: IVal<number>) => void) {

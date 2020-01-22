@@ -3,8 +3,8 @@ import { DNode, DNodeContext } from "./DNode";
 import { TextNode } from "./TextNode";
 import { ElementNode, InputNode } from "./ElementNode";
 import { IfNode } from "./IfNode";
+import { ForEachNode } from "./ForEachNode";
 import { RepeatNode } from "./RepeatNode";
-import { RepeatNode2 } from "./RepeatNode2";
 
 export { DNode, DNodeContext };
 
@@ -24,12 +24,12 @@ export function If(condition: IVal<any>, thenChild: DNode, elseChild?: DNode): D
   return new IfNode(condition, thenChild, elseChild);
 }
 
-export function Repeat<T>(vars: IVars<T>, nodeBuilder: (item: IVar<T>, index: IVal<number>) => DNode): DNode {
-  return new RepeatNode(vars, nodeBuilder);
+export function ForEach<T>(vars: IVars<T>, nodeBuilder: (item: IVar<T>, index: IVal<number>) => DNode): DNode {
+  return new ForEachNode(vars, nodeBuilder);
 }
 
-export function Repeat2<T>(vals: IVal<T[]>, nodeBuilder: (item: IVal<T>, index: number) => DNode): DNode {
-  return new RepeatNode2(vals, nodeBuilder);
+export function Repeat<T>(vals: IVal<T[]>, nodeBuilder: (item: IVal<T>, index: number) => DNode): DNode {
+  return new RepeatNode(vals, nodeBuilder);
 }
 
 export function mount(tree: DNode, rootElement: HTMLElement) {

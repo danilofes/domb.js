@@ -27,3 +27,7 @@ export function isEmpty(value: { length: number }): boolean {
 export function isZero(value: number): boolean {
   return value === 0;
 }
+
+export function isEqualTo<T>(v2: T): (v1: T) => boolean {
+  return (v1: T) => v1 === v2;
+}

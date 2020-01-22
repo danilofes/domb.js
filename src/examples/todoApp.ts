@@ -1,4 +1,4 @@
-import { DNode, If, Input, El, Repeat } from '../dnodes/dnodes';
+import { DNode, If, Input, El, Repeat, ForEach } from '../dnodes/dnodes';
 import { Var, Vars, template } from '../vars/vars';
 import { isEmpty, isZero } from '../vars/util';
 
@@ -36,7 +36,7 @@ export function todoApp(): DNode {
         El('button').text('Add todo').attributes({ 'disabled': todoInput.map(isEmpty) })
       ),
     El('ul').children(
-      Repeat(todoList, (todo, index) =>
+      ForEach(todoList, (todo, index) =>
         El('li').children(
           Input('checkbox').checked(todo.$.done, checked => toggleTodo(index.value, checked)),
           El('span').text(todo.$.description),
