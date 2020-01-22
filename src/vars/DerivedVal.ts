@@ -1,10 +1,10 @@
 import { IVal, IOnChange } from "./vars-api";
 import { AbstractVal } from "./AbstractVal";
 
-export abstract class DerivedVal<T, U> extends AbstractVal<U> {
+export class DerivedVal<U> extends AbstractVal<U> {
   private cachedValue: U;
 
-  constructor(private vals: IVal<T>[], private computeValue: (vals: T[]) => U) {
+  constructor(private vals: IVal<any>[], private computeValue: (vals: any[]) => U) {
     super();
     this.cachedValue = computeValue(vals.map(iVal => iVal.value));
   }

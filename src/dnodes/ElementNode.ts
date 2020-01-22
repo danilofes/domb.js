@@ -74,6 +74,11 @@ export class ElementNode<K extends keyof HTMLElementTagNameMap> implements DNode
     this.eventListeners[type] = listener;
     return this;
   }
+
+  conditionalClass(cssClass: string, condition: IVal<boolean>): this {
+    this.optionalClasses[cssClass] = condition;
+    return this;
+  }
 }
 
 export class InputNode extends ElementNode<'input'> {

@@ -1,7 +1,7 @@
 import { IVal } from "./vars-api";
 import { DerivedVal } from "./DerivedVal";
 
-export class TemplateVal extends DerivedVal<string, string> {
+export class TemplateVal extends DerivedVal<string> {
   constructor(private strings: TemplateStringsArray, vals: IVal<string>[]) {
     super(vals, values => applyTemplateVals(strings, values));
   }

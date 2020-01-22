@@ -3,6 +3,7 @@ import { SimpleVar } from "./SimpleVar";
 import { MutableArrayVar } from "./MutableArrayVar";
 import { TemplateVal } from "./TemplateVal";
 import { ConstVal } from "./ConstVal";
+import { DerivedVal } from "./DerivedVal";
 
 export * from "./vars-api";
 
@@ -27,4 +28,12 @@ export function forEach<T>(vars: IVars<T>, consumer: (item: IVar<T>, index: IVal
   for (let i = 0, len = vars.length.value; i < len; i++) {
     consumer(vars.itemAt(i), vars.indexValAt(i));
   }
+}
+
+export function filterVals<E, F>(vals: IVal<E[]>, filterData: IVal<F>, predicateFn: (item: E, filterData: F) => boolean): IVal<E[]> {
+  return new DerivedVal<E[]>([vals, filterData], tuple => {
+    const items = tuple[0] as E[];
+    const filterData = tuple[1] as F;
+    return items.filter(item => predicateFn(item, filterData));
+  });
 }
