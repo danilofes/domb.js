@@ -25,9 +25,6 @@ export class RepeatNode<T> implements DNode {
       onDelete: (index, item) => {
         mountedChild[index].unmount();
         mountedChild.splice(index, 1);
-      },
-      onMove: (indexFrom, indexTo) => {
-        throw new Error('Move not supported');
       }
     }));
 

@@ -81,7 +81,7 @@ export class InputNode extends ElementNode<'input'> {
     super('input');
   }
 
-  bindValue(valueVar: IVar<string>): this {
+  value(valueVar: IVar<string>): this {
     this.property('value', valueVar);
     this.on('input', ev => {
       valueVar.setValue((ev.currentTarget as HTMLInputElement).value);
@@ -89,9 +89,9 @@ export class InputNode extends ElementNode<'input'> {
     return this;
   }
 
-  bindChecked(checkedVar: IVar<boolean>): this;
-  bindChecked(checkedVar: IVal<boolean>, setValue: (newValue: boolean) => void): this;
-  bindChecked(checkedVar: IVar<boolean> | IVal<boolean>, setValue?: (newValue: boolean) => void): this {
+  checked(checkedVar: IVar<boolean>): this;
+  checked(checkedVar: IVal<boolean>, setValue: (newValue: boolean) => void): this;
+  checked(checkedVar: IVar<boolean> | IVal<boolean>, setValue?: (newValue: boolean) => void): this {
     this.property('checked', checkedVar);
     if (setValue) {
       this.on('click', ev => {

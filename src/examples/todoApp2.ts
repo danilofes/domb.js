@@ -32,13 +32,13 @@ export function todoApp2(): DNode {
         addTodo();
       })
       .children(
-        Input('text').attributes({ 'placeholder': 'What needs to be done?' }).bindValue(todoInput),
+        Input('text').attributes({ 'placeholder': 'What needs to be done?' }).value(todoInput),
         El('button').text('Add todo').attributes({ 'disabled': todoInput.map(isEmpty) })
       ),
     El('ul').children(
       Repeat(todoList, (todo, index) =>
         El('li').children(
-          Input('checkbox').bindChecked(todo.$.done, checked => toggleTodo(index, checked)),
+          Input('checkbox').checked(todo.$.done, checked => toggleTodo(index, checked)),
           El('span').text(todo.$.description),
           El('button').text('x')
             .on('click', () => deleteTodo(index))
