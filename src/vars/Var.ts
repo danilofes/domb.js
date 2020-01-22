@@ -32,12 +32,9 @@ export type IOnInsert<T> = (index: number, insertedValue: T) => void;
 
 export type IOnDelete<T> = (index: number, deletedValue: T) => void;
 
-export type IOnMove<T> = (indexFrom: number, indexTo: number) => void;
-
 export interface IValsHandler<T> {
   onInsert?: IOnInsert<T>,
-  onDelete?: IOnDelete<T>,
-  onMove?: IOnMove<T>
+  onDelete?: IOnDelete<T>
 }
 
 export interface IVals<T> {
@@ -50,6 +47,5 @@ export interface IVals<T> {
 export interface IVars<T> extends IVals<T> {
   itemAt: (index: number) => IVar<T>,
   insertAt: (index: number, value: T) => void,
-  deleteAt: (index: number) => void,
-  move: (indexFrom: number, indexTo: number) => void
+  deleteAt: (index: number) => void
 }

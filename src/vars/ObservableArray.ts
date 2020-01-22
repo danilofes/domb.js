@@ -67,21 +67,6 @@ export class ObservableArray<T> implements IVars<T> {
     this.updateIndexes(index);
   }
 
-  move(indexFrom: number, indexTo: number) {
-    if (indexFrom !== indexTo) {
-      const entry = this.entries.splice(indexFrom, 1)[0];
-      this.entries.splice(indexTo, 0, entry)
-    }
-
-    for (const handler of this.handlers) {
-      if (handler.onMove) {
-        handler.onMove(indexFrom, indexTo);
-      }
-    }
-
-    this.updateIndexes(Math.min(indexFrom, indexTo));
-  }
-
   watch(handler: IValsHandler<T>) {
     this.handlers.push(handler);
     return () => arrayRemove(this.handlers, handler);

@@ -38,7 +38,7 @@ export function todoApp(): DNode {
     El('ul').children(
       Repeat(todoList, (todo, index) =>
         El('li').children(
-          Input('checkbox').attributes({ 'type': 'checkbox' }).bindChecked(field(todo, 'done'), checked => toggleTodo(index.value, checked)),
+          Input('checkbox').bindChecked(field(todo, 'done'), checked => toggleTodo(index.value, checked)),
           El('span').text(field(todo, 'description')),
           El('button').text('x')
             .on('click', () => deleteTodo(index.value))
