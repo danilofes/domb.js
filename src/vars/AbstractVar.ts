@@ -30,6 +30,10 @@ export abstract class AbstractVar<T> implements IVar<T> {
     }
   }
 
+  is(mappingFn: (v: T) => boolean): IVal<boolean> {
+    return this.map(mappingFn);
+  }
+
   field<K extends keyof T>(field: K): IVar<T[K]> {
     return new MappedVar<T, T[K]>(this,
       (vt: T) => vt[field],

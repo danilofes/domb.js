@@ -14,6 +14,7 @@ export interface IVal<T> {
   readonly value: T,
   watch(onChange: IOnChange<T>): IUnsubscribe,
   map<U>(mappingFn: (v: T) => U): IVal<U>,
+  is(mappingFn: (v: T) => boolean): IVal<boolean>,
   field<K extends keyof T>(field: K): IVal<T[K]>,
   readonly $: IValFields<T>
 }
@@ -22,6 +23,7 @@ export interface IVar<T> extends IVal<T> {
   setValue: (newValue: T) => void,
   map<U>(mappingFn: (v: T) => U): IVal<U>,
   map<U>(mappingFn: (v: T) => U, inverseMappingFn: (v: U, prev: T) => T): IVar<U>,
+  is(mappingFn: (v: T) => boolean): IVal<boolean>,
   field<K extends keyof T>(field: K): IVar<T[K]>,
   readonly $: IVarFields<T>
 }

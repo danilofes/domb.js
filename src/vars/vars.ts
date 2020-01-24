@@ -15,8 +15,8 @@ export function Val<T>(value: T): ConstVal<T> {
   return new ConstVal<T>(value);
 }
 
-export function template(strings: TemplateStringsArray, ...vals: (IVal<string> | string)[]): IVal<string> {
-  const normalizedVals = vals.map(s => typeof s === 'string' ? Val(s) : s);
+export function template(strings: TemplateStringsArray, ...vals: (IVal<string | number> | string | number)[]): IVal<string> {
+  const normalizedVals = vals.map(s => (typeof s === 'string' || typeof s === 'number') ? Val(s) : s);
   return new TemplateVal(strings, normalizedVals);
 }
 

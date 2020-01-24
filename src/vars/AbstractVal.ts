@@ -21,6 +21,10 @@ export abstract class AbstractVal<T> implements IVal<T> {
     return new MappedVal<T, U>(this, mappingFn);
   }
 
+  is(mappingFn: (v: T) => boolean): IVal<boolean> {
+    return this.map(mappingFn);
+  }
+
   field<K extends keyof T>(field: K): IVal<T[K]> {
     return new MappedVal<T, T[K]>(this, (vt: T) => vt[field]);
   }
