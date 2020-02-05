@@ -41,9 +41,17 @@ export class MappedVal<T, U> extends AbstractVal<U> {
   }
 
   watch(listener: IOnChange<U>) {
-    return this.mainVal.watch((newValue: T, prevValue: T) => {
-      listener(this.mappingFn(newValue), this.mappingFn(prevValue));
-    });
+    return watchMapped(this.mainVal, this.mappingFn, listener);
   }
 
+}
+
+export function watchMapped<T, U>(aVal: IVal<T>, mappingFn: (v: T) => U, listener: IOnChange<U>) {
+  return aVal.watch((newValue: T, prevValue: T) => {
+    const mNewValue = mappingFn(newValue),
+      mPrevValue = mappingFn(prevValue);
+    if (mNewValue !== mPrevValue) {
+      listener(mNewValue, mPrevValue);
+    }
+  });
 }

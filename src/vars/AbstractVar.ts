@@ -1,5 +1,5 @@
 import { IVar, IVarFields, IOnChange, IUnsubscribe, IVal } from "./vars-api";
-import { MappedVal } from "./AbstractVal";
+import { MappedVal, watchMapped } from "./AbstractVal";
 
 export abstract class AbstractVar<T> implements IVar<T> {
 
@@ -52,13 +52,13 @@ export class MappedVar<T, U> extends AbstractVar<U> {
   }
 
   setValue(newValue: U) {
-    const prevValue = this.mainVar.value;
-    this.mainVar.setValue(this.inverseMappingFn(newValue, prevValue));
+    const prevValue = this.value;
+    if (newValue !== prevValue) {
+      this.mainVar.setValue(this.inverseMappingFn(newValue, this.mainVar.value));
+    }
   }
 
   watch(listener: IOnChange<U>) {
-    return this.mainVar.watch((newValue: T, prevValue: T) => {
-      listener(this.mappingFn(newValue), this.mappingFn(prevValue));
-    });
+    return watchMapped(this.mainVar, this.mappingFn, listener);
   }
 }
