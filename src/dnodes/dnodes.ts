@@ -20,8 +20,8 @@ export function El<K extends keyof HTMLElementTagNameMap>(tagName: K): ElementNo
   return new ElementNode(tagName);
 }
 
-export function If(condition: IVal<any>, thenChild: DNode, elseChild?: DNode): DNode {
-  return new IfNode(condition, thenChild, elseChild);
+export function If<T>(condition: IVal<T>, thenChild: DNode, elseChild?: DNode): DNode {
+  return new IfNode<T>(condition, thenChild, elseChild);
 }
 
 export function ForEach<T>(vars: IVars<T>, nodeBuilder: (item: IVar<T>, index: IVal<number>) => DNode): DNode {

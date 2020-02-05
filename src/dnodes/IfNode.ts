@@ -1,8 +1,8 @@
 import { DNode, MountedDNode, DNodeContext } from "./DNode";
 import { IVal } from "../vars/vars";
 
-export class IfNode implements DNode {
-  constructor(private condition: IVal<any>, private thenChild: DNode, private elseChild?: DNode) { }
+export class IfNode<T> implements DNode {
+  constructor(private condition: IVal<T>, private thenChild: DNode, private elseChild?: DNode) { }
 
   mount(context: DNodeContext) {
     const placeholderNode = context.appendNode(document.createComment('If disabled'));
@@ -15,8 +15,9 @@ export class IfNode implements DNode {
 
     return context.end(placeholderNode);
 
-    function toggleChild(conditionValue: boolean) {
-      if (conditionValue) {
+    function toggleChild(conditionValue: T) {
+      const value = !!conditionValue;
+      if (value) {
         placeholderNode.textContent = 'If enabled';
         if (!mountedThenChild) {
           mountedThenChild = context.mountChild(thenChild, context.parentElement, placeholderNode.nextSibling);

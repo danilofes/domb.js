@@ -4,11 +4,16 @@ import { MutableArrayVar } from "./MutableArrayVar";
 import { TemplateVal } from "./TemplateVal";
 import { ConstVal } from "./ConstVal";
 import { DerivedVal } from "./DerivedVal";
+import { LocationHashVar } from "./LocationHashVar";
 
 export * from "./vars-api";
 
 export function Var<T>(value: T): SimpleVar<T> {
   return new SimpleVar<T>(value);
+}
+
+export function HashVar(): LocationHashVar {
+  return new LocationHashVar();
 }
 
 export function Val<T>(value: T): ConstVal<T> {

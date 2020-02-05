@@ -1,5 +1,15 @@
-import { mount } from './dnodes/dnodes';
+import { mount, If, El, Input } from './dnodes/dnodes';
 import { todoApp } from './examples/todoApp';
+import { Var } from './vars/vars';
 
+function index() {
+  const visible = Var(true);
 
-mount(todoApp(), document.getElementById('todoApp')!);
+  return El('div').children(
+    Input('checkbox').checked(visible),
+    If(visible, todoApp())
+  );
+
+}
+
+mount(index(), document.getElementById('todoApp')!);

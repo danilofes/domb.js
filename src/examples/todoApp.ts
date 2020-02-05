@@ -1,5 +1,5 @@
 import { DNode, If, Input, El, Repeat } from '../dnodes/dnodes';
-import { Var, template, filterVals, IVal } from '../vars/vars';
+import { Var, template, filterVals, IVal, HashVar } from '../vars/vars';
 import { empty, arrayReplaceAt, arrayRemoveAt, equalTo, greaterThan } from '../vars/util';
 
 interface TodoItem {
@@ -18,6 +18,7 @@ export function todoApp(): DNode {
   const
     todoInput = Var(''),
     todoList = Var<TodoItem[]>([]),
+    route = HashVar(),
     currentFilter = Var(showAll),
     undoneCount = todoList.map(todos => todos.filter(showActive).length),
     filteredTodoList = filterVals(todoList, currentFilter, (todo, predicate) => predicate(todo));
@@ -46,6 +47,7 @@ export function todoApp(): DNode {
   }
 
   return El('div').children(
+    El('div').text(route),
     El('form')
       .on('submit', event => {
         event.preventDefault();
