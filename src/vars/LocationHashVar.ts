@@ -4,11 +4,8 @@ import { AbstractVar } from "./AbstractVar";
 
 export class LocationHashVar extends AbstractVar<string> {
 
-  private cachedValue: string;
-
   constructor() {
     super();
-    this.cachedValue = window.location.hash;
   }
 
   get value() {
@@ -21,8 +18,8 @@ export class LocationHashVar extends AbstractVar<string> {
 
   watch(listener: IOnChange<string>) {
     const handler = (ev: HashChangeEvent) => {
-      listener(window.location.hash, this.cachedValue);
-      this.cachedValue = window.location.hash;
+      const oldHash = '#' + (ev.oldURL.split('#')[1] || '/');
+      listener(window.location.hash, oldHash);
     };
 
     window.addEventListener('hashchange', handler);

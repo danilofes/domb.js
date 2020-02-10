@@ -9,17 +9,26 @@ interface TodoItem {
 
 type TodoPredicate = (todo: TodoItem) => boolean;
 
+const
+  showAll: TodoPredicate = () => true,
+  showActive: TodoPredicate = todo => !todo.done,
+  showCompleted: TodoPredicate = todo => todo.done;
+
+function routeToFilter(route: string): TodoPredicate {
+  switch (route) {
+    case '#/active': return showActive;
+    case '#/completed': return showCompleted;
+    default: return showAll;
+  }
+}
+
 export function todoApp(): DNode {
-  const
-    showAll: TodoPredicate = () => true,
-    showActive: TodoPredicate = todo => !todo.done,
-    showCompleted: TodoPredicate = todo => todo.done;
 
   const
     todoInput = Var(''),
     todoList = Var<TodoItem[]>([]),
-    route = HashVar(),
-    currentFilter = Var(showAll),
+    route = HashVar().map(r => r || '#/'),
+    currentFilter = route.map(routeToFilter),
     undoneCount = todoList.map(todos => todos.filter(showActive).length),
     filteredTodoList = filterVals(todoList, currentFilter, (todo, predicate) => predicate(todo));
 
@@ -47,7 +56,6 @@ export function todoApp(): DNode {
   }
 
   return El('div').children(
-    El('div').text(route),
     El('form')
       .on('submit', event => {
         event.preventDefault();
@@ -70,9 +78,9 @@ export function todoApp(): DNode {
     ),
     El('div').children(
       TotalCount(),
-      FilterButton('All', showAll),
-      FilterButton('Active', showActive),
-      FilterButton('Completed', showCompleted)
+      FilterLink('All', '#/'),
+      FilterLink('Active', '#/active'),
+      FilterLink('Completed', '#/completed')
     )
   );
 
@@ -82,9 +90,8 @@ export function todoApp(): DNode {
       El('span').text(template`There are ${undoneCount} items in your todo list`))
   }
 
-  function FilterButton(text: string, predicate: TodoPredicate) {
-    return El('button').text(text)
-      .conditionalClass('active', currentFilter.is(equalTo(predicate)))
-      .on('click', () => currentFilter.setValue(predicate))
+  function FilterLink(text: string, href: string) {
+    return El('a').text(text).attributes({ href })
+      .conditionalClass('active', route.is(equalTo(href)));
   }
 }
