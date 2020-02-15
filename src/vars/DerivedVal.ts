@@ -1,26 +1,26 @@
 import { IVal, IOnChange } from "./vars-api";
 import { AbstractVal } from "./AbstractVal";
+import { arrayReplaceAt } from "./util";
 
 export class DerivedVal<U> extends AbstractVal<U> {
-  private cachedValue: U;
 
   constructor(private vals: IVal<any>[], private computeValue: (vals: any[]) => U) {
     super();
-    this.cachedValue = computeValue(vals.map(iVal => iVal.value));
   }
 
   get value() {
-    return this.cachedValue;
+    return this.computeValue(this.vals.map(iVal => iVal.value));
   }
 
   watch(listener: IOnChange<U>) {
-    const subscriptions = this.vals.map(iVal => {
+    const subscriptions = this.vals.map((iVal, i) => {
       return iVal.watch((newValue, prevValue) => {
-        const lastComputedValue = this.cachedValue;
-        const newComputedValue = this.computeValue(this.vals.map(iVal => iVal.value));
-        if (!this.isEqual(newComputedValue, lastComputedValue)) {
-          this.cachedValue = newComputedValue;
-          listener(newComputedValue, lastComputedValue);
+        const newValues = this.vals.map(iVal => iVal.value),
+          prevValues = arrayReplaceAt(newValues, i, prevValue),
+          newComputedValue = this.computeValue(newValues),
+          prevComputedValue = this.computeValue(prevValues);
+        if (newComputedValue !== prevComputedValue) {
+          listener(newComputedValue, prevComputedValue);
         }
       });
     });
@@ -30,9 +30,5 @@ export class DerivedVal<U> extends AbstractVal<U> {
         undo();
       }
     }
-  }
-
-  isEqual(v1: U, v2: U): boolean {
-    return v1 === v2;
   }
 }
