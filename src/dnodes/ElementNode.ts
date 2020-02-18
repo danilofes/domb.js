@@ -98,13 +98,12 @@ export class InputNode extends ElementNode<'input'> {
   checked(checkedVar: IVal<boolean>, setValue: (newValue: boolean) => void): this;
   checked(checkedVar: IVar<boolean> | IVal<boolean>, setValue?: (newValue: boolean) => void): this {
     this.property('checked', checkedVar);
-    if (setValue) {
+
+    if (setValue || 'setValue' in checkedVar) {
+      const onChange = setValue || (checkedVar as IVar<boolean>).setValue.bind(checkedVar);
       this.on('click', ev => {
-        setValue((ev.currentTarget as HTMLInputElement).checked);
-      });
-    } else if ('setValue' in checkedVar) {
-      this.on('click', ev => {
-        checkedVar.setValue((ev.currentTarget as HTMLInputElement).checked);
+        setTimeout(() => onChange(!checkedVar.value), 0);
+        ev.preventDefault();
       });
     }
     return this;
