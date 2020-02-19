@@ -89,34 +89,27 @@ export class InputNode extends ElementNode<'input'> {
   value(valueVar: IVar<string>): this;
   value(valueVar: IVal<string>, setValue: (newValue: string) => void): this;
   value(valueVar: IVar<string> | IVal<string>, setValue?: (newValue: string) => void): this {
-    this.property('value', valueVar);
-
-    if (setValue || 'setValue' in valueVar) {
-      const onChange = setValue || (valueVar as IVar<string>).setValue.bind(valueVar);
-      this.on('input', ev => {
-        const node = (ev.currentTarget as HTMLInputElement);
-        onChange(node.value);
-        node.value = valueVar.value;
-      });
-    }
+    twoWayBindProp(this, 'value', 'input', valueVar, setValue);
     return this;
   }
 
   checked(checkedVar: IVar<boolean>): this;
   checked(checkedVar: IVal<boolean>, setValue: (newValue: boolean) => void): this;
   checked(checkedVar: IVar<boolean> | IVal<boolean>, setValue?: (newValue: boolean) => void): this {
-    this.property('checked', checkedVar);
-
-    if (setValue || 'setValue' in checkedVar) {
-      const onChange = setValue || (checkedVar as IVar<boolean>).setValue.bind(checkedVar);
-      this.on('click', ev => {
-        const node = (ev.currentTarget as HTMLInputElement);
-        onChange(node.checked);
-        node.checked = checkedVar.value;
-      });
-    }
+    twoWayBindProp(this, 'checked', 'click', checkedVar, setValue);
     return this;
   }
 
 }
 
+function twoWayBindProp<K extends keyof HTMLInputElement>(elNode: InputNode, propKey: K, eventType: keyof HTMLElementEventMap, checkedVar: IVar<HTMLInputElement[K]> | IVal<HTMLInputElement[K]>, setValue?: (newValue: HTMLInputElement[K]) => void) {
+  elNode.property(propKey, checkedVar);
+  if (setValue || 'setValue' in checkedVar) {
+    const onChange = setValue || (checkedVar as IVar<HTMLInputElement[K]>).setValue.bind(checkedVar);
+    elNode.on(eventType, ev => {
+      const node = (ev.currentTarget as HTMLInputElement);
+      onChange(node[propKey]);
+      node[propKey] = checkedVar.value;
+    });
+  }
+}
