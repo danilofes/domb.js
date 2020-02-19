@@ -86,11 +86,19 @@ export class InputNode extends ElementNode<'input'> {
     super('input');
   }
 
-  value(valueVar: IVar<string>): this {
+  value(valueVar: IVar<string>): this;
+  value(valueVar: IVal<string>, setValue: (newValue: string) => void): this;
+  value(valueVar: IVar<string> | IVal<string>, setValue?: (newValue: string) => void): this {
     this.property('value', valueVar);
-    this.on('input', ev => {
-      valueVar.setValue((ev.currentTarget as HTMLInputElement).value);
-    });
+
+    if (setValue || 'setValue' in valueVar) {
+      const onChange = setValue || (valueVar as IVar<string>).setValue.bind(valueVar);
+      this.on('input', ev => {
+        const node = (ev.currentTarget as HTMLInputElement);
+        onChange(node.value);
+        node.value = valueVar.value;
+      });
+    }
     return this;
   }
 
@@ -102,8 +110,9 @@ export class InputNode extends ElementNode<'input'> {
     if (setValue || 'setValue' in checkedVar) {
       const onChange = setValue || (checkedVar as IVar<boolean>).setValue.bind(checkedVar);
       this.on('click', ev => {
-        setTimeout(() => onChange(!checkedVar.value), 0);
-        ev.preventDefault();
+        const node = (ev.currentTarget as HTMLInputElement);
+        onChange(node.checked);
+        node.checked = checkedVar.value;
       });
     }
     return this;
