@@ -1,6 +1,4 @@
-import { DNode, If, Input, El, Repeat } from '../dnodes/dnodes';
-import { Var, template, filterVals, IVal, HashVar } from '../vars/vars';
-import { empty, arrayReplaceAt, arrayRemoveAt, equalTo, greaterThan } from '../vars/util';
+import { DNode, If, Input, El, Repeat, Var, template, filterVals, IVal, HashVar, empty, arrayReplaceAt, arrayRemoveAt, equalTo, greaterThan } from 'domb.js';
 
 interface TodoItem {
   done: boolean,

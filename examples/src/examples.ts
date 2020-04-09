@@ -1,6 +1,5 @@
-import { mount, If, El, Input } from '../dnodes/dnodes';
+import { mount, If, El, Input, Var } from 'domb.js';
 import { todoApp } from './todoApp';
-import { Var } from '../vars/vars';
 
 function index() {
   const visible = Var(true);

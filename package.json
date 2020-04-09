@@ -1,7 +1,7 @@
 {
   "name": "domb.js",
   "version": "0.0.1",
-  "description": "",
+  "description": "Simple UI library to build reactive DOM nodes",
   "author": "Danilo F. Silva",
   "license": "ISC",
   "homepage": "https://github.com/danilofes/domb.js#readme",
@@ -21,17 +21,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup -c",
-    "watch": "rollup -cw",
-    "start": "webpack-dev-server --open"
+    "watch": "rollup -cw"
   },
   "devDependencies": {
-    "html-webpack-plugin": "^3.2.0",
-    "rollup": "^2.3.4",
+    "@types/node": "^13.11.1",
+    "rollup": "^2.3.5",
     "rollup-plugin-typescript2": "^0.27.0",
-    "ts-loader": "^6.2.1",
-    "typescript": "~3.7.5",
-    "webpack": "^4.41.6",
-    "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.10.3"
+    "typescript": "~3.8.3"
   }
 }

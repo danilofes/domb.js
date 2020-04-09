@@ -3,7 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   mode: 'development',
-  entry: './src/index.ts',
+  entry: './src/examples.ts',
   module: {
     rules: [
       {
@@ -17,7 +17,7 @@ module.exports = {
     extensions: ['.wasm', '.ts', '.tsx', '.mjs', '.cjs', '.js', '.json']
   },
   output: {
-    filename: 'index.js',
+    filename: 'examples.js',
     path: path.resolve(__dirname, 'dist'),
   },
   devServer: {

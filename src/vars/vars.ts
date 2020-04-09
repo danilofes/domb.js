@@ -7,6 +7,7 @@ import { DerivedVal } from "./DerivedVal";
 import { LocationHashVar } from "./LocationHashVar";
 
 export * from "./vars-api";
+export * from './util';
 
 export function Var<T>(value: T): SimpleVar<T> {
   return new SimpleVar<T>(value);
