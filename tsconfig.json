@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "./dist",
+    "module": "es6",
+    "outDir": "./dist",
     "target": "es5",
     "lib": [
       "dom",
@@ -9,13 +13,9 @@
       "es2015.proxy",
       "es2015.core"
     ],
-    "strict": true,
-    "skipLibCheck": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "outDir": "dist"
+    "strict": true
   },
   "include": [
-    "src"
+    "src/**/*"
   ]
 }

@@ -2,24 +2,32 @@
   "name": "dreact",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack",
-    "start": "webpack-dev-server --open"
-  },
+  "author": "Danilo F. Silva",
+  "license": "ISC",
+  "homepage": "https://github.com/danilofes/dreact#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/danilofes/dreact.git"
   },
-  "author": "Danilo F. Silva",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/danilofes/dreact/issues"
   },
-  "homepage": "https://github.com/danilofes/dreact#readme",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "files": [
+    "dist"
+  ],
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c",
+    "watch": "rollup -cw",
+    "start": "webpack-dev-server --open"
+  },
   "devDependencies": {
     "html-webpack-plugin": "^3.2.0",
+    "rollup": "^2.3.4",
+    "rollup-plugin-typescript2": "^0.27.0",
     "ts-loader": "^6.2.1",
     "typescript": "~3.7.5",
     "webpack": "^4.41.6",
