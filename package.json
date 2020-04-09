@@ -1,16 +1,16 @@
 {
-  "name": "dreact",
+  "name": "domb.js",
   "version": "1.0.0",
   "description": "",
   "author": "Danilo F. Silva",
   "license": "ISC",
-  "homepage": "https://github.com/danilofes/dreact#readme",
+  "homepage": "https://github.com/danilofes/domb.js#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/danilofes/dreact.git"
+    "url": "git+https://github.com/danilofes/domb.js.git"
   },
   "bugs": {
-    "url": "https://github.com/danilofes/dreact/issues"
+    "url": "https://github.com/danilofes/domb.js/issues"
   },
   "main": "dist/index.js",
   "module": "dist/index.es.js",
