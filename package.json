@@ -4,7 +4,7 @@
   "description": "Simple UI library to build reactive DOM nodes",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "build": "webpack",
     "start": "webpack-dev-server --open"
   },
@@ -19,7 +19,10 @@
   },
   "homepage": "https://github.com/danilofes/domb.js#readme",
   "devDependencies": {
+    "@types/jest": "^26.0.14",
     "html-webpack-plugin": "4.5.0",
+    "jest": "^26.4.2",
+    "ts-jest": "^26.4.1",
     "ts-loader": "8.0.4",
     "typescript": "4.0.3",
     "webpack": "4.44.2",
