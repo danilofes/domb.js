@@ -1,22 +1,26 @@
+import { Callback, IScope, IState, Unsubscribe, Updater } from './events';
 
 export function state<T>(initialValue: T): State<T> {
   return new State(initialValue);
 }
 
-type Callback<T> = (value: T) => void;
-type Unsubscribe = () => void;
+export class State<T> implements IState<T> {
+  private readonly listeners: Set<Callback<T>> = new Set();
 
-export class State<T> {
-  private listeners: Set<Callback<T>>;
+  constructor(private value: T) { }
 
-  constructor(private value: T) {
-    this.listeners = new Set();
+  getValue(): T {
+    return this.value;
   }
 
-  bind(callback: Callback<T>): Unsubscribe {
-    callback(this.value);
+  subscribe(scope: IScope, callback: Callback<T>): Unsubscribe {
     this.listeners.add(callback);
-    return () => this.listeners.delete(callback);
+    return scope.addUnsubscribe(() => this.listeners.delete(callback));
+  }
+
+  bind(scope: IScope, callback: Callback<T>): Unsubscribe {
+    callback(this.getValue());
+    return this.subscribe(scope, callback);
   }
 
   setValue(newValue: T) {
@@ -27,8 +31,12 @@ export class State<T> {
     }
   }
 
-  private clearListeners() {
-    this.listeners.clear();
+  push(event: T): void {
+    this.setValue(event);
+  }
+
+  update(updater: Updater<T>): void {
+    this.setValue(updater(this.value));
   }
 
 }
