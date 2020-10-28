@@ -1,4 +1,4 @@
-import { Callback, IScope, IValueSource, Unsubscribe } from "./events";
+import { Callback, IScope, IValueChangeEvent, IValueSource, Unsubscribe } from "./events";
 import { SimpleScope } from "./simpleScope";
 
 export type UnwrapedValueSource<T> = T extends IValueSource<infer V> ? V : never;
@@ -14,18 +14,24 @@ export function combine<A extends readonly IValueSource<any>[], T>(sources: read
 
 class CombinedValue<A extends readonly any[], T> extends SimpleScope implements IValueSource<T> {
 
-  private readonly listeners: Set<Callback<T>> = new Set();
+  private readonly listeners: Set<Callback<IValueChangeEvent<T>>> = new Set();
+  private lastValue: T | undefined = undefined;
+  private started = false;
 
   constructor(private sources: readonly [...A], private compute: (...args: UnwrapedValueSourceTuple<A>) => T) {
     super();
   }
 
   getValue(): T {
+    return this.computeValue();
+  }
+
+  private computeValue(): T {
     const values: UnwrapedValueSourceTuple<A> = this.sources.map(vs => vs.getValue()) as any;
     return this.compute(...values);
   }
 
-  subscribe(scope: IScope, callback: Callback<T>): Unsubscribe {
+  subscribe(scope: IScope, callback: Callback<IValueChangeEvent<T>>): Unsubscribe {
     this.start();
     this.listeners.add(callback);
     return scope.addUnsubscribe(() => {
@@ -36,14 +42,19 @@ class CombinedValue<A extends readonly any[], T> extends SimpleScope implements 
 
   bind(scope: IScope, callback: Callback<T>): Unsubscribe {
     callback(this.getValue());
-    return this.subscribe(scope, callback);
+    return this.subscribe(scope, ({ newValue }) => callback(newValue));
   }
 
   start() {
-    if (this.listeners.size === 0) {
+    if (!this.started) {
+      this.started = true;
+      this.lastValue = this.computeValue();
       const onSourceChange = () => {
+        const prevValue = this.lastValue as T;
         const newValue = this.getValue();
-        this.listeners.forEach(callback => callback(newValue));
+        if (newValue !== prevValue) {
+          this.listeners.forEach(callback => callback({ newValue, prevValue }));
+        }
       }
       for (const source of this.sources) {
         source.subscribe(this, onSourceChange);
@@ -52,7 +63,9 @@ class CombinedValue<A extends readonly any[], T> extends SimpleScope implements 
   }
 
   stop() {
-    if (this.listeners.size === 0) {
+    if (this.started) {
+      this.started = false;
+      this.lastValue = undefined;
       this.unsubscribeAll();
     }
   }
