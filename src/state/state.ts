@@ -1,5 +1,5 @@
 import { Callback, IScope, IState, IValueChangeEvent, Unsubscribe, Updater } from './events';
-import { withTransaction } from './transaction';
+import { onCommitTransaction } from './transaction';
 
 export function state<T>(initialValue: T): State<T> {
   return new State(initialValue);
@@ -7,6 +7,7 @@ export function state<T>(initialValue: T): State<T> {
 
 export class State<T> implements IState<T> {
   private readonly listeners: Set<Callback<IValueChangeEvent<T>>> = new Set();
+  private pendingChange: IValueChangeEvent<T> | null = null;
 
   constructor(private value: T) { }
 
@@ -25,17 +26,24 @@ export class State<T> implements IState<T> {
   }
 
   setValue(newValue: T) {
-    const prevValue = this.value;
-    if (newValue !== prevValue) {
-      this.value = newValue;
-      withTransaction(transaction => {
-        transaction.queue(this, { newValue, prevValue });
-      })
-    }
+    const changeEvent = { newValue, prevValue: this.value };
+    this.value = newValue;
+    this.emitChangeAtEndOfTransaction(changeEvent);
   }
 
-  notifyListeners(valueChangeEvent: IValueChangeEvent<T>) {
-    this.listeners.forEach(callback => callback(valueChangeEvent));
+  emitChangeAtEndOfTransaction(valueChangeEvent: IValueChangeEvent<T>) {
+    if (this.pendingChange) {
+      this.pendingChange.newValue = valueChangeEvent.newValue;
+    } else {
+      this.pendingChange = valueChangeEvent;
+      onCommitTransaction(() => {
+        if (this.pendingChange && this.pendingChange.newValue !== this.pendingChange.prevValue) {
+          const changeToNotify = this.pendingChange;
+          this.pendingChange = null;
+          this.listeners.forEach(callback => callback(changeToNotify));
+        }
+      });
+    }
   }
 
   push(event: T): void {

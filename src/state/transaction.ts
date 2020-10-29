@@ -1,34 +1,39 @@
-import { IState, IValueChangeEvent } from "./events";
-
 let currentTransaction: Transaction | null = null;
 
+export type Task = () => void;
+
 export interface ITransaction {
-  queue<T>(er: IState<T>, event: IValueChangeEvent<T>): void;
+  doOnCommit(task: Task): void;
 }
 
-export function withTransaction(fn: (transaction: ITransaction) => void) {
+export function inTransaction(task: (transaction: Transaction) => void) {
   if (currentTransaction == null) {
     currentTransaction = new Transaction();
-    fn(currentTransaction);
-    currentTransaction.emitAll();
+    task(currentTransaction);
+    currentTransaction.commit();
     currentTransaction = null;
   } else {
-    fn(currentTransaction);
+    task(currentTransaction);
   }
+}
+
+export function onCommitTransaction(task: Task) {
+  inTransaction(tx => tx.doOnCommit(task));
 }
 
 class Transaction implements ITransaction {
 
-  private pendingNotifications: Map<IState<any>, IValueChangeEvent<any>> = new Map();
+  private tasks: Task[] = [];
 
-  queue<T>(state: IState<T>, event: IValueChangeEvent<T>): void {
-    const currentEvent = this.pendingNotifications.get(state);
-    this.pendingNotifications.set(state, currentEvent ? { ...currentEvent, newValue: event.newValue } : event);
+  doOnCommit(task: Task): void {
+    this.tasks.push(task);
   }
 
-  emitAll() {
-    this.pendingNotifications.forEach((event, state) => state.notifyListeners(event));
-    this.pendingNotifications.clear();
+  commit() {
+    for (const task of this.tasks) {
+      task();
+    }
+    this.tasks = [];
   }
 
 }
