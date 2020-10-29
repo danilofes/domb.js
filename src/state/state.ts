@@ -1,4 +1,5 @@
 import { Callback, IScope, IState, IValueChangeEvent, Unsubscribe, Updater } from './events';
+import { withTransaction } from './transaction';
 
 export function state<T>(initialValue: T): State<T> {
   return new State(initialValue);
@@ -27,8 +28,14 @@ export class State<T> implements IState<T> {
     const prevValue = this.value;
     if (newValue !== prevValue) {
       this.value = newValue;
-      this.listeners.forEach(callback => callback({ newValue, prevValue }));
+      withTransaction(transaction => {
+        transaction.queue(this, { newValue, prevValue });
+      })
     }
+  }
+
+  notifyListeners(valueChangeEvent: IValueChangeEvent<T>) {
+    this.listeners.forEach(callback => callback(valueChangeEvent));
   }
 
   push(event: T): void {

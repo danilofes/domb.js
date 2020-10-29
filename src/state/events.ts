@@ -29,4 +29,5 @@ export interface IValueSource<T> extends IEventEmmiter<IValueChangeEvent<T>> {
 export interface IState<T> extends IValueSource<T>, IEventReceiver<T> {
   setValue(newValue: T): void;
   update(updater: Updater<T>): void;
+  notifyListeners(valueChangeEvent: IValueChangeEvent<T>): void;
 }
