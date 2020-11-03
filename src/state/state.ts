@@ -28,10 +28,10 @@ export class State<T> implements IState<T> {
   setValue(newValue: T) {
     const changeEvent = { newValue, prevValue: this.value };
     this.value = newValue;
-    this.emitChangeAtEndOfTransaction(changeEvent);
+    this.emitValueChangeEventAtEndOfTransaction(changeEvent);
   }
 
-  emitChangeAtEndOfTransaction(valueChangeEvent: IValueChangeEvent<T>) {
+  emitValueChangeEventAtEndOfTransaction(valueChangeEvent: IValueChangeEvent<T>) {
     if (this.pendingChange) {
       this.pendingChange.newValue = valueChangeEvent.newValue;
     } else {
