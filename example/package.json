@@ -1,0 +1,20 @@
+{
+  "name": "domb.ts-example",
+  "version": "0.1.0",
+  "description": "Domb.ts example",
+  "scripts": {
+    "start": "webpack-dev-server --open"
+  },
+  "author": "Danilo F. Silva",
+  "license": "ISC",
+  "dependencies": {
+    "domb": "file:.."
+  },
+  "devDependencies": {
+    "html-webpack-plugin": "4.5.0",
+    "ts-loader": "8.0.4",
+    "webpack": "4.44.2",
+    "webpack-cli": "3.3.12",
+    "webpack-dev-server": "3.11.0"
+  }
+}
