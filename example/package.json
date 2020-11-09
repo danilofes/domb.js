@@ -1,10 +1,12 @@
 {
-  "name": "domb.ts-example",
-  "description": "Domb.ts example",
-  "scripts": {
-    "start": "webpack-dev-server --open"
-  },
+  "name": "domb-example",
+  "description": "Domb Example",
   "dependencies": {
     "domb": "file:.."
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danilofes/domb.js.git"
+  },
+  "license": "ISC"
 }

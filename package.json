@@ -5,10 +5,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "postinstall": "cd example && npm install",
+    "postinstall": "cd example && npm install --no-optional",
     "build": "cd lib && tsc",
     "test": "jest",
-    "start": "cd example && npm start"
+    "start": "cd example && webpack-dev-server --open"
   },
   "devDependencies": {
     "typescript": "4.0.3",
