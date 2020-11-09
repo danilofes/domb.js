@@ -1,12 +1,8 @@
 {
   "name": "domb-example",
   "description": "Domb Example",
+  "private": true,
   "dependencies": {
     "domb": "file:.."
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/danilofes/domb.js.git"
-  },
-  "license": "ISC"
+  }
 }
