@@ -1,7 +1,4 @@
-import { state } from "./state";
-import { SimpleScope } from "./simpleScope";
-import { combine } from "./combinedValue";
-import { map } from "./mappedValue";
+import { state, SimpleScope, combine, map } from ".";
 
 test('should be possible to combine two states', () => {
   const state1 = state(4);

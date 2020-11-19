@@ -1,6 +1,4 @@
-import { state } from "./state";
-import { SimpleScope } from "./simpleScope";
-import { inTransaction } from "./transaction";
+import { state, SimpleScope, inTransaction } from ".";
 
 test('state should emit ValueChangeEvent at the end of transaction', () => {
   const state1 = state(4);
