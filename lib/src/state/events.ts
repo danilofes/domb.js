@@ -30,3 +30,7 @@ export interface IState<T> extends IValueSource<T>, IEventReceiver<T> {
   setValue(newValue: T): void;
   update(updater: Updater<T>): void;
 }
+
+export function isValueSource<T = unknown>(v: IValueSource<T> | unknown): v is IValueSource<T> {
+  return typeof v === 'object' && v !== null && 'getValue' in v;
+}
