@@ -11,7 +11,7 @@ type StateFields<T> = T extends object
     }
   : {};
 
-abstract class BaseState<T> implements IState<T> {
+export abstract class BaseState<T> implements IState<T> {
   $: StateFields<T>;
 
   constructor() {

@@ -1,4 +1,4 @@
-import { IValueSource, IState, isValueSource } from "../state";
+import { IValueSource, IState, isValueSource, BaseState } from "../state";
 
 export class DombNode {}
 
@@ -33,8 +33,10 @@ export class DombTextNode extends DombNode implements Modifier<DombElement<HTMLE
 }
 
 
-export function text(arg0: IValueSource<unknown> | TemplateStringsArray, ...args: unknown[]): DombTextNode {
-  if (isValueSource(arg0)) {
+export function text(arg0: string | IValueSource<unknown> | TemplateStringsArray, ...args: unknown[]): DombTextNode {
+  if (typeof arg0 === 'string') {
+    return new DombTextNode();
+  } else if (isValueSource(arg0)) {
     return new DombTextNode();
   } else {
     return new DombTextNode();
@@ -54,7 +56,7 @@ export function $if(condition: IValueSource<unknown>, nodeFactory: () => DombNod
   return new DombDirective();
 }
 
-export function $repeat<T>(values: IValueSource<T[]>, buildItem: (item: T) => DombNode) {
+export function $repeat<T>(values: BaseState<T[]>, buildItem: (itemAtIndex: BaseState<T>, index: number) => DombNode) {
   return new DombDirective();
 }
 
@@ -69,7 +71,7 @@ export function onSubmit(callback: () => void): Modifier<DombElement<HTMLFormEle
 }
 
 
-export function checked(value: IValueSource<unknown>, onChange: (newValue: boolean) => void): Modifier<DombElement<HTMLInputElement>> {
+export function checked(value: IValueSource<unknown> | boolean, onChange?: (newValue: boolean) => void): Modifier<DombElement<HTMLInputElement>> {
   return {
     applyToNode(formNode: DombElement<HTMLInputElement>) {
       //

@@ -1,33 +1,43 @@
-import { root, $if, $repeat, el, text, onSubmit, checked, attr, model, DombElement } from ".";
-import { state, map } from "../state";
+import { root, $if, $repeat, el, text, onSubmit, checked, attr, model } from ".";
+import { state } from "../state";
+
+interface ITask {
+  done: boolean,
+  description: string
+};
 
 function todoApp() {
-  const todoDescription = state("");
-  const todos = state([""]);
-  const count = map(todos, (l) => l.length);
+  const taskDescription = state("");
+  const tasks = state<ITask[]>([]);
+  const count = tasks.$.length;
 
-  function addTodo() {}
+  function addTask() {
+    tasks.update(prev => [...prev, {
+      done: false,
+      description: taskDescription.getValue()
+    }]);
+  }
 
-  function toggleAll() {}
+  function toggleAll() {
 
-  let inputDescription: DombElement;
+  }
 
   root(document.getElementById("todoApp")).children(
     el.form(
-      onSubmit(addTodo),
-      inputDescription = el.inputText(attr("placeholder", "What needs to be done?"), model(todoDescription)),
+      onSubmit(addTask),
+      el.inputText(attr("placeholder", "What needs to be done?"), model(taskDescription)),
 
+      el.ul(
+        $repeat(tasks, (task) =>
+          el.li(
+            el.inputCheckbox(model(task.$.done)),
+            text(task.$.description)
+          )
+        )
+      ),
       $if(count, () => 
-        el.inputCheckbox(checked(map(count, isZero), toggleAll))
-      ),
-      el.ul($repeat(todos, (item) => 
-        el.li(text`node`))
-      ),
-      el.div(text(todoDescription))
+        el.div(text`You have ${count} tasks in your todo list.`)
+      )
     )
   );
-}
-
-function isZero(value: number) {
-  return value === 0;
 }
