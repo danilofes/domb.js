@@ -28,8 +28,32 @@ export interface IValueSource<T> extends IEventEmmiter<IValueChangeEvent<T>> {
 
 export interface IState<T> extends IValueSource<T>, IEventReceiver<T> {
   setValue(newValue: T): void;
-  update(updater: Updater<T>): void;
+
+  $: IStateAccessor<T>;
+  bind(scope: IScope, callback: Callback<T>): Unsubscribe;
+  push(event: T): void;
+  withFallbackValue(value: NonNullable<T>): IState<NonNullable<T>>;
 }
+
+export type IStateAccessor<T> =
+  T extends ReadonlyArray<infer E> ? {
+    length: IState<number>;
+    [index: number]: IState<E>;
+  }
+  : T extends object ? {
+    [K in keyof T & string]: IState<T[K]>;
+  }
+  : {};
+
+export type IStateUpdater<T> =
+  T extends ReadonlyArray<infer E> ? {
+    append(element: E): void;
+    removeAt(index: number): void;
+  }
+  : T extends object ? {
+    patch(fields: Partial<T>): void;
+  }
+  : {};
 
 export function isValueSource<T = unknown>(v: IValueSource<T> | unknown): v is IValueSource<T> {
   return typeof v === 'object' && v !== null && 'getValue' in v;

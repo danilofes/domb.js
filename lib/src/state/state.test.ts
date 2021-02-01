@@ -55,7 +55,7 @@ describe("state", () => {
     const scope = new SimpleScope();
     let myValue = 0;
     const parentState = state<number[]>([0, 1]);
-    const myState = parentState.atIndex(1);
+    const myState = parentState.$[1];
 
     myState.bind(scope, (v) => (myValue = v));
     expect(myValue).toBe(1);

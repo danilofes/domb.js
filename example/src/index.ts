@@ -1,6 +1,8 @@
 import { mount, If, El, Input, Var } from 'domb';
 import { todoApp } from './todoApp';
 
+import { mountTodoApp2 } from './todoApp2';
+
 function index() {
   const visible = Var(true);
 
@@ -12,3 +14,5 @@ function index() {
 }
 
 mount(index(), document.getElementById('todoApp')!);
+
+mountTodoApp2();

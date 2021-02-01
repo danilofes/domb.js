@@ -4,3 +4,4 @@ export * from './simpleScope';
 export * from './state';
 export * from './mappedValue';
 export * from './combinedValue';
+export * from './constValue';

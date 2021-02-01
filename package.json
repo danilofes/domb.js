@@ -7,7 +7,7 @@
   "scripts": {
     "postinstall": "cd example && npm install --no-optional",
     "build": "cd lib && tsc",
-    "test": "jest",
+    "test": "jest --watch",
     "start": "cd example && webpack-dev-server --open"
   },
   "devDependencies": {

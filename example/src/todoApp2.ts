@@ -1,30 +1,30 @@
-import { root, $if, $repeat, el, on, text, properties, model } from ".";
-import { state } from "../state";
+import { root, $if, $repeat, el, on, text, properties, model, state } from "domb";
+
 
 interface ITask {
   done: boolean,
   description: string
 };
 
-function todoApp() {
+export function mountTodoApp2() {
   const taskDescription = state("");
   const tasks = state<ITask[]>([]);
   const count = tasks.$.length;
 
   function addTask(event: Event) {
+    event.preventDefault();
     tasks.updater.append({
       done: false,
       description: taskDescription.getValue()
     });
     taskDescription.setValue("");
-    event.preventDefault();
   }
 
   function deleteTask(i: number) {
     return () => tasks.updater.removeAt(i);
   }
 
-  root(document.getElementById("todoApp")).children(
+  root(document.getElementById("todoApp2")).children(
     el.form(
       on.submit(addTask),
 

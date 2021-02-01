@@ -1,35 +1,22 @@
-import { Callback, IScope, IState, IValueChangeEvent, Unsubscribe, Updater } from "./events";
+import { Callback, IScope, IState, IStateUpdater, IValueChangeEvent, IStateAccessor, Unsubscribe, Updater } from "./events";
 import { onCommitTransaction } from "./transaction";
 
 export function state<T>(initialValue: T): State<T> {
   return new State(initialValue);
 }
 
-type StateFields<T> = T extends object
-  ? {
-      [K in keyof T & string]: StateField<T, K>;
-    }
-  : {};
-
-export abstract class BaseState<T> implements IState<T> {
-  $: StateFields<T>;
+abstract class BaseState<T> implements IState<T> {
+  $: IStateAccessor<T>;
+  updater: IStateUpdater<T>;
 
   constructor() {
-    this.$ = new Proxy<any>(
-      {},
-      {
-        get: (target, name) => new StateField<any, any>(this, name),
-      }
-    );
+    this.$ = createStateAccessor(this);
+    this.updater = new StateUpdater(this) as unknown as IStateUpdater<T>;
   }
 
   abstract getValue(): T;
   abstract setValue(newValue: T): void;
   abstract subscribe(scope: IScope, callback: Callback<IValueChangeEvent<T>>): Unsubscribe;
-
-  update(updater: Updater<T>): void {
-    this.setValue(updater(this.getValue()));
-  }
 
   bind(scope: IScope, callback: Callback<T>): Unsubscribe {
     callback(this.getValue());
@@ -40,12 +27,8 @@ export abstract class BaseState<T> implements IState<T> {
     this.setValue(event);
   }
 
-  withFallbackValue(value: NonNullable<T>): NonNullableState<T> {
+  withFallbackValue(value: NonNullable<T>): IState<NonNullable<T>> {
     return new NonNullableState(this, value);
-  }
-
-  atIndex<E>(index: number): T extends (infer E)[] ? StateArrayIndex<E> : never {
-    return new StateArrayIndex<E>(this as any, index) as any;
   }
 }
 
@@ -156,10 +139,55 @@ class NonNullableState<T> extends DerivedState<T, NonNullable<T>> {
   }
 
   getDerivedValue(v: T): NonNullable<T> {
-    return v ?? this.fallbackValue;
+    return (v ?? this.fallbackValue) as NonNullable<T>;
   }
 
   buildDerivedValue(prevT: T, newU: NonNullable<T>): T {
     return newU;
+  }
+}
+
+function createStateAccessor<T>(state: IState<T>): IStateAccessor<T> {
+  return new Proxy<any>({}, {
+    get: (target, name) => {
+      if (typeof name === 'string') {
+        return new StateField<any, any>(state, name)
+      } else if (typeof name === 'number') {
+        new StateArrayIndex<any>(state as any, name) as any;
+      } else {
+        throw new Error('Property key should be string or number');
+      }
+    },
+  });
+}
+
+export class StateUpdater {
+  constructor(private state: IState<any>) { }
+
+  append(element: any): void {
+    const v = this.state.getValue();
+    if (Array.isArray(v)) {
+      this.state.setValue([...v, element]);
+    } else {
+      throw Error('state does not hold an array');
+    }
+  }
+
+  removeAt(index: number): void {
+    const v = this.state.getValue();
+    if (Array.isArray(v)) {
+      this.state.setValue([...v.slice(0, index), ...v.slice(index + 1)]);
+    } else {
+      throw Error('state does not hold an array');
+    }
+  }
+
+  patch(fields: any): void {
+    const v = this.state.getValue();
+    if (typeof v === 'object' && v !== null) {
+      this.state.setValue({ ...v, ...fields });
+    } else {
+      throw Error('state does not hold an object');
+    }
   }
 }
