@@ -1,13 +1,8 @@
 import { root, $if, $repeat, el, on, text, properties, model } from ".";
 import { state } from "../state";
 
-let rootEl: HTMLDivElement;
-
-beforeEach(() => {
-  rootEl = document.createElement("div");
-});
-
 test("static text node", () => {
+  const rootEl = createEl('div');
   root(rootEl).children(
     text("static text")
   );
@@ -19,6 +14,7 @@ test("static text node", () => {
 });
 
 test("dynamic text node", () => {
+  const rootEl = createEl('div');
   const myString = state("dynamic text");
   root(rootEl).children(
     text(myString)
@@ -33,6 +29,7 @@ test("dynamic text node", () => {
 
 
 test("element nodes with children", () => {
+  const rootEl = createEl('div');
   root(rootEl).children(
     el.ul(
       el.li()
@@ -44,6 +41,7 @@ test("element nodes with children", () => {
 });
 
 test("$if directive", () => {
+  const rootEl = createEl('div');
   const condition = state(false);
   root(rootEl).children(
     $if(condition, () =>
@@ -61,14 +59,22 @@ test("$if directive", () => {
 });
 
 test("$repeat directive", () => {
-  const items = state(["apple", "orange"]);
+  const rootEl = createEl('table');
+  const fruits = state([{ name: "apple" }, { name: "orange" }]);
   root(rootEl).children(
-    $repeat(items, (item, i) =>
-      el.span(text(item))
+    $repeat(fruits, (fruit, i) =>
+      el.tr(
+        el.td(text(i)),
+        el.td(text(fruit.$.name))
+      )
     )
   );
 
   expect(rootEl.children.length).toBe(2);
-  expect(rootEl.children[0].outerHTML).toBe("<span>apple</span>");
-  expect(rootEl.children[1].outerHTML).toBe("<span>orange</span>");
+  expect(rootEl.children[0].outerHTML).toBe("<tr><td>0</td><td>apple</td></tr>");
+  expect(rootEl.children[1].outerHTML).toBe("<tr><td>1</td><td>orange</td></tr>");
 });
+
+function createEl(tag: string): HTMLElement {
+  return document.createElement(tag);
+}

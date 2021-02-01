@@ -19,8 +19,10 @@ export class DombTextNode extends AbstractDombNode<Text> {
   };
 }
 
-export function text(arg0: string | IValueSource<unknown> | TemplateStringsArray, ...args: unknown[]): DombTextNode {
+export function text(arg0: string | number | IValueSource<unknown> | TemplateStringsArray, ...args: unknown[]): DombTextNode {
   if (typeof arg0 === 'string') {
+    return new DombTextNode(asValueSource(arg0));
+  } else if (typeof arg0 === 'number') {
     return new DombTextNode(asValueSource(arg0));
   } else if (isValueSource(arg0)) {
     return new DombTextNode(arg0);

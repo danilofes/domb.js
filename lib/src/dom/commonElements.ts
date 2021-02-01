@@ -9,6 +9,9 @@ export const el = {
   ul: dombElementOf('ul'),
   li: dombElementOf('li'),
   button: dombElementOf('button'),
+  table: dombElementOf('table'),
+  tr: dombElementOf('tr'),
+  td: dombElementOf('td'),
   inputText: function (...modifiers: IModifier<DombHtmlInputText, HTMLInputElement>[]) {
     return new DombHtmlInputText(modifiers);
   },
