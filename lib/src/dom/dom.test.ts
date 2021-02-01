@@ -30,3 +30,45 @@ test("dynamic text node", () => {
   myString.setValue("new value");
   expect(actualNode.textContent).toBe("new value");
 });
+
+
+test("element nodes with children", () => {
+  root(rootEl).children(
+    el.ul(
+      el.li()
+    ),
+    el.span()
+  );
+
+  expect(rootEl.innerHTML).toBe("<ul><li></li></ul><span></span>");
+});
+
+test("$if directive", () => {
+  const condition = state(false);
+  root(rootEl).children(
+    $if(condition, () =>
+      el.span()
+    )
+  );
+
+  expect(rootEl.innerHTML).toBe("<!--if node-->");
+
+  condition.setValue(true);
+  expect(rootEl.innerHTML).toBe("<span></span><!--if node-->");
+
+  condition.setValue(false);
+  expect(rootEl.innerHTML).toBe("<!--if node-->");
+});
+
+test("$repeat directive", () => {
+  const items = state(["apple", "orange"]);
+  root(rootEl).children(
+    $repeat(items, (item, i) =>
+      el.span(text(item))
+    )
+  );
+
+  expect(rootEl.children.length).toBe(2);
+  expect(rootEl.children[0].outerHTML).toBe("<span>apple</span>");
+  expect(rootEl.children[1].outerHTML).toBe("<span>orange</span>");
+});

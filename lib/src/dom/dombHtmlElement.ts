@@ -1,14 +1,14 @@
-import { INonVoidDombNode, IDynamicDombNode, AbstractDombNode, IModifier } from './dombNode';
+import { INonVoidDombNode, IDombNode, AbstractDombNode, IModifier } from './dombNode';
 
 export interface IDombHtmlElement<E extends HTMLElement> extends INonVoidDombNode<E> {
   getEl(): E;
 
-  children(...children: IDynamicDombNode[]): void;
+  children(...children: IDombNode[]): void;
 }
 
 export class DombStaticHtmlElement<E extends HTMLElement> extends AbstractDombNode<E> implements IDombHtmlElement<E> {
 
-  protected _children: IDynamicDombNode[] = [];
+  protected _children: IDombNode[] = [];
 
   constructor(protected el: E) {
     super(el);
@@ -17,14 +17,15 @@ export class DombStaticHtmlElement<E extends HTMLElement> extends AbstractDombNo
   getEl() {
     return this.el;
   }
-  
-  mountChild(dombNode: IDynamicDombNode, beforeNode?: Node) {
+
+  mountChild(dombNode: IDombNode, beforeNode?: Node) {
     dombNode.init(this);
     this.el.insertBefore(dombNode.getDomNode(), beforeNode ?? null);
     this._children.push(dombNode);
+    dombNode.onMount();
   }
 
-  unmountChild(dombNode: IDynamicDombNode): void {
+  unmountChild(dombNode: IDombNode): void {
     const idx = this._children.indexOf(dombNode);
     if (idx !== -1) {
       dombNode.destroySelf();
@@ -33,7 +34,7 @@ export class DombStaticHtmlElement<E extends HTMLElement> extends AbstractDombNo
     }
   }
 
-  children(...children: IDynamicDombNode[]) {
+  children(...children: IDombNode[]) {
     for (const child of children) {
       this.mountChild(child);
     }
@@ -46,8 +47,6 @@ export class DombStaticHtmlElement<E extends HTMLElement> extends AbstractDombNo
     super.destroySelf();
   }
 
-  
-
 }
 
 export function root<E extends HTMLElement>(element: E | null): DombStaticHtmlElement<E> {
@@ -57,13 +56,13 @@ export function root<E extends HTMLElement>(element: E | null): DombStaticHtmlEl
   return new DombStaticHtmlElement<E>(element);
 }
 
-export class DombDynamicHtmlElement<K extends keyof HTMLElementTagNameMap> extends DombStaticHtmlElement<HTMLElementTagNameMap[K]> implements IDynamicDombNode<HTMLElementTagNameMap[K]>, IModifier<INonVoidDombNode> {
+export class DombDynamicHtmlElement<K extends keyof HTMLElementTagNameMap> extends DombStaticHtmlElement<HTMLElementTagNameMap[K]> {
 
-  constructor(tagName: K, private modifiers: IModifier<IDynamicDombNode<HTMLElementTagNameMap[K]>>[]) {
+  constructor(tagName: K, private modifiers: IModifier<IDombNode<HTMLElementTagNameMap[K]>>[]) {
     super(document.createElement(tagName));
   }
 
-  init(parent: INonVoidDombNode) {
+  onMount() {
     for (const m of this.modifiers) {
       m.applyToNode(this, this.getDomNode());
     }

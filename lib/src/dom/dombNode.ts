@@ -4,15 +4,13 @@ import { IUnsubscribe } from '../vars/vars';
 export interface IDombNode<N extends Node = Node> extends IScope {
   getDomNode(): N;
   destroySelf(): void;
-}
-
-export interface IDynamicDombNode<N extends Node = Node> extends IDombNode<N> {
   init(parent: INonVoidDombNode): void;
+  onMount(): void;
 }
 
 export interface INonVoidDombNode<N extends Node = Node> extends IDombNode<N> {
-  mountChild(child: IDynamicDombNode, beforeNode?: Node): void;
-  unmountChild(child: IDynamicDombNode): void;
+  mountChild(child: IDombNode, beforeNode?: Node): void;
+  unmountChild(child: IDombNode): void;
 }
 
 export interface IModifier<N extends IDombNode, E = {}> {
@@ -25,34 +23,11 @@ export interface INodeWithModel<V> extends IDombNode {
   onModelValueChange(callback: (newV: V) => void): IUnsubscribe;
 }
 
-export abstract class AbstractDombNode<N extends Node> extends SimpleScope implements IDombNode<N> {
-  constructor(private domNode: N) {
-    super();
-  }
-
-  destroySelf(): void {
-    this.unsubscribeAll();
-  }
-
-  getDomNode(): N {
-    return this.domNode;
-  }
-}
-
-export abstract class AbstractDynamicDombNode<N extends Node> extends AbstractDombNode<N> implements IDynamicDombNode<N>, IModifier<INonVoidDombNode> {
+export abstract class AbstractDombNode<N extends Node> extends SimpleScope implements IDombNode<N>, IModifier<INonVoidDombNode> {
   parent: INonVoidDombNode | null = null;
-
-  constructor(domNode: N) {
-    super(domNode);
-  }
 
   init(parent: INonVoidDombNode<Node>): void {
     this.parent = parent;
-    this.onMount();
-  }
-
-  protected onMount() {
-    //
   }
 
   protected getParent(): INonVoidDombNode {
@@ -62,9 +37,21 @@ export abstract class AbstractDynamicDombNode<N extends Node> extends AbstractDo
     return this.parent!;
   }
 
+  constructor(private domNode: N) {
+    super();
+  }
+
+  getDomNode(): N {
+    return this.domNode;
+  }
+
+  onMount(): void {
+    //
+  };
+
   destroySelf(): void {
     this.parent = null;
-    super.destroySelf();
+    this.unsubscribeAll();
   }
 
   applyToNode(node: INonVoidDombNode) {

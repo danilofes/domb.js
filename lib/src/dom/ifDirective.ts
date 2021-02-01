@@ -1,11 +1,11 @@
 import { IValueSource } from '../state';
-import { IDynamicDombNode, AbstractDynamicDombNode } from './dombNode';
+import { IDombNode, AbstractDombNode } from './dombNode';
 
-export class IfDirective extends AbstractDynamicDombNode<Comment> {
+export class IfDirective extends AbstractDombNode<Comment> {
 
-  mountedNode?: IDynamicDombNode;
+  mountedNode?: IDombNode;
 
-  constructor(private condition: IValueSource<unknown>, private nodeFactoryTrue: () => IDynamicDombNode) {
+  constructor(private condition: IValueSource<unknown>, private nodeFactoryTrue: () => IDombNode) {
     super(document.createComment('if node'));
   }
 
@@ -33,6 +33,6 @@ export class IfDirective extends AbstractDynamicDombNode<Comment> {
   }
 }
 
-export function $if(condition: IValueSource<unknown>, nodeFactoryTrue: () => IDynamicDombNode) {
+export function $if(condition: IValueSource<unknown>, nodeFactoryTrue: () => IDombNode) {
   return new IfDirective(condition, nodeFactoryTrue);
 }

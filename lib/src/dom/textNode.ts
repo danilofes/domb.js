@@ -1,8 +1,8 @@
 import { IValueSource, asValueSource, isValueSource, combine } from '../state';
-import { INonVoidDombNode, AbstractDynamicDombNode } from './dombNode';
+import { INonVoidDombNode, AbstractDombNode } from './dombNode';
 
 
-export class DombTextNode extends AbstractDynamicDombNode<Text> {
+export class DombTextNode extends AbstractDombNode<Text> {
 
   constructor(private textValue: IValueSource<unknown>) {
     super(document.createTextNode(''));

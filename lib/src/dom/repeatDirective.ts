@@ -1,11 +1,11 @@
 import { IState } from '../state';
-import { IDynamicDombNode, AbstractDynamicDombNode } from './dombNode';
+import { IDombNode, AbstractDombNode } from './dombNode';
 
-export class RepeatDirective<T> extends AbstractDynamicDombNode<Comment> {
+export class RepeatDirective<T> extends AbstractDombNode<Comment> {
 
-  mountedNodes: IDynamicDombNode[] = [];
+  mountedNodes: IDombNode[] = [];
 
-  constructor(private values: IState<T[]>, private buildItem: (itemAtIndex: IState<T>, index: number) => IDynamicDombNode) {
+  constructor(private values: IState<T[]>, private buildItem: (itemAtIndex: IState<T>, index: number) => IDombNode) {
     super(document.createComment('repeat node'));
   }
 
@@ -33,6 +33,6 @@ export class RepeatDirective<T> extends AbstractDynamicDombNode<Comment> {
   }
 }
 
-export function $repeat<T>(values: IState<T[]>, buildItem: (itemAtIndex: IState<T>, index: number) => IDynamicDombNode) {
+export function $repeat<T>(values: IState<T[]>, buildItem: (itemAtIndex: IState<T>, index: number) => IDombNode) {
   return new RepeatDirective<T>(values, buildItem);
 }
