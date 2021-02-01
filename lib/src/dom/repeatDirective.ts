@@ -21,7 +21,7 @@ export class RepeatDirective<T> extends AbstractDombNode<Comment> {
       this.mountedNodes.splice(numItems, this.mountedNodes.length - numItems);
     }
     for (let i = this.mountedNodes.length; i < numItems; i++) {
-      const newItem = this.buildItem(this.values.$[i], i);
+      const newItem = this.buildItem(this.values.atIndex(i), i);
       this.getParent().mountChild(newItem, this.getDomNode());
       this.mountedNodes.push(newItem);
     }

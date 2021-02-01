@@ -29,18 +29,15 @@ export interface IValueSource<T> extends IEventEmmiter<IValueChangeEvent<T>> {
 export interface IState<T> extends IValueSource<T>, IEventReceiver<T> {
   setValue(newValue: T): void;
 
-  $: IStateAccessor<T>;
+  $: IFieldAccessor<T>;
+  atIndex(i: number): T extends ReadonlyArray<infer E> ? IState<E> : never;
   bind(scope: IScope, callback: Callback<T>): Unsubscribe;
   push(event: T): void;
   withFallbackValue(value: NonNullable<T>): IState<NonNullable<T>>;
 }
 
-export type IStateAccessor<T> =
-  T extends ReadonlyArray<infer E> ? {
-    length: IState<number>;
-    [index: number]: IState<E>;
-  }
-  : T extends object ? {
+export type IFieldAccessor<T> =
+  T extends object ? {
     [K in keyof T & string]: IState<T[K]>;
   }
   : {};

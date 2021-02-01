@@ -1,4 +1,4 @@
-import { Callback, IScope, IState, IStateUpdater, IValueChangeEvent, IStateAccessor, Unsubscribe, Updater } from "./events";
+import { Callback, IScope, IState, IStateUpdater, IValueChangeEvent, Unsubscribe, IFieldAccessor } from "./events";
 import { onCommitTransaction } from "./transaction";
 
 export function state<T>(initialValue: T): State<T> {
@@ -6,11 +6,11 @@ export function state<T>(initialValue: T): State<T> {
 }
 
 abstract class BaseState<T> implements IState<T> {
-  $: IStateAccessor<T>;
+  $: IFieldAccessor<T>;
   updater: IStateUpdater<T>;
 
   constructor() {
-    this.$ = createStateAccessor(this);
+    this.$ = createFieldAccessor(this);
     this.updater = new StateUpdater(this) as unknown as IStateUpdater<T>;
   }
 
@@ -29,6 +29,10 @@ abstract class BaseState<T> implements IState<T> {
 
   withFallbackValue(value: NonNullable<T>): IState<NonNullable<T>> {
     return new NonNullableState(this, value);
+  }
+
+  atIndex(i: number): T extends ReadonlyArray<infer E> ? StateArrayIndex<E> : never {
+    return new StateArrayIndex<any>((this as any), i) as any;
   }
 }
 
@@ -80,6 +84,10 @@ abstract class DerivedState<T, U> extends BaseState<U> {
 
   abstract buildDerivedValue(prevT: T, newU: U): T;
 
+  protected shouldSkipChangeEvent(ce: IValueChangeEvent<T>): boolean {
+    return false;
+  };
+
   getValue(): U {
     return this.getDerivedValue(this.state.getValue());
   }
@@ -90,10 +98,12 @@ abstract class DerivedState<T, U> extends BaseState<U> {
 
   subscribe(scope: IScope, callback: Callback<IValueChangeEvent<U>>): Unsubscribe {
     return this.state.subscribe(scope, (ce) => {
-      const newValue = this.getDerivedValue(ce.newValue);
-      const prevValue = this.getDerivedValue(ce.prevValue);
-      if (newValue !== prevValue) {
-        callback({ newValue, prevValue });
+      if (!this.shouldSkipChangeEvent(ce)) {
+        const newValue = this.getDerivedValue(ce.newValue);
+        const prevValue = this.getDerivedValue(ce.prevValue);
+        if (newValue !== prevValue) {
+          callback({ newValue, prevValue });
+        }
       }
     });
   }
@@ -131,6 +141,10 @@ class StateArrayIndex<E> extends DerivedState<E[], E> {
     }
     return [...prevT.slice(0, this.index), newU, ...prevT.slice(this.index + 1)];
   }
+
+  shouldSkipChangeEvent(ce: IValueChangeEvent<E[]>) {
+    return this.index >= ce.prevValue.length || this.index >= ce.newValue.length;
+  }
 }
 
 class NonNullableState<T> extends DerivedState<T, NonNullable<T>> {
@@ -147,16 +161,10 @@ class NonNullableState<T> extends DerivedState<T, NonNullable<T>> {
   }
 }
 
-function createStateAccessor<T>(state: IState<T>): IStateAccessor<T> {
+function createFieldAccessor<T>(state: IState<T>): IFieldAccessor<T> {
   return new Proxy<any>({}, {
     get: (target, name) => {
-      if (typeof name === 'string') {
-        return new StateField<any, any>(state, name)
-      } else if (typeof name === 'number') {
-        new StateArrayIndex<any>(state as any, name) as any;
-      } else {
-        throw new Error('Property key should be string or number');
-      }
+      return new StateField<any, any>(state, name);
     },
   });
 }

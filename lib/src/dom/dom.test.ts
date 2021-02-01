@@ -73,6 +73,13 @@ test("$repeat directive", () => {
   expect(rootEl.children.length).toBe(2);
   expect(rootEl.children[0].outerHTML).toBe("<tr><td>0</td><td>apple</td></tr>");
   expect(rootEl.children[1].outerHTML).toBe("<tr><td>1</td><td>orange</td></tr>");
+
+  fruits.updater.append({ name: "banana" });
+  expect(rootEl.children.length).toBe(3);
+  expect(rootEl.children[2].outerHTML).toBe("<tr><td>2</td><td>banana</td></tr>");
+
+  fruits.setValue([]);
+  expect(rootEl.children.length).toBe(0);
 });
 
 function createEl(tag: string): HTMLElement {
