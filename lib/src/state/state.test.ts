@@ -76,12 +76,15 @@ describe("state", () => {
 
     arrayState.updater.append(7);
     arrayState.updater.append(8);
+    expect(arrayState.getValue()).toEqual([7, 8]);
     expect(log).toEqual([]);
 
     index1State.setValue(9);
+    expect(arrayState.getValue()).toEqual([7, 9]);
     expect(log).toEqual(["changed from 8 to 9"]);
 
-    arrayState.updater.removeAt(1);
+    arrayState.updater.removeAt(0);
+    expect(arrayState.getValue()).toEqual([9]);
     expect(log).toEqual(["changed from 8 to 9"]);
   });
 
