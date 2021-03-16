@@ -7,7 +7,7 @@ export type UnwrapedValueSourceTuple<T extends readonly IValueSource<any>[]> = {
   [K in keyof T]: UnwrapedValueSource<T[K]>
 };
 
-export function combine<A extends readonly IValueSource<any>[], T>(sources: readonly [...A], compute: (...args: UnwrapedValueSourceTuple<A>) => T): IValueSource<T> {
+export function combine<A extends readonly IValueSource<any>[], T>(sources: A, compute: (args: UnwrapedValueSourceTuple<A>) => T): IValueSource<T> {
   return new CombinedValue<A, T>(sources, compute);
 }
 
@@ -18,7 +18,7 @@ class CombinedValue<A extends readonly any[], T> extends SimpleScope implements 
   private lastValue: T | undefined = undefined;
   private started = false;
 
-  constructor(private sources: readonly [...A], private compute: (...args: UnwrapedValueSourceTuple<A>) => T) {
+  constructor(private sources: A, private compute: (args: UnwrapedValueSourceTuple<A>) => T) {
     super();
   }
 
@@ -28,7 +28,7 @@ class CombinedValue<A extends readonly any[], T> extends SimpleScope implements 
 
   private computeValue(): T {
     const values: UnwrapedValueSourceTuple<A> = this.sources.map(vs => vs.getValue()) as any;
-    return this.compute(...values);
+    return this.compute(values);
   }
 
   subscribe(scope: IScope, callback: Callback<IValueChangeEvent<T>>): Unsubscribe {
