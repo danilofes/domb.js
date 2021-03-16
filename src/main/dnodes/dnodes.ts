@@ -6,7 +6,8 @@ import { IfNode } from "./IfNode";
 import { ForEachNode } from "./ForEachNode";
 import { RepeatNode } from "./RepeatNode";
 
-export { DNode, DNodeContext };
+export type { DNode };
+export { DNodeContext };
 
 export function Text(text: IVal<string> | string): DNode {
   return new TextNode(typeof text === 'string' ? Val(text) : text);
