@@ -1,4 +1,4 @@
-import { state, SimpleScope, combine, map } from ".";
+import { state, SimpleScope, combine, map, textVal } from ".";
 
 test('should be possible to combine two states', () => {
   const state1 = state(4);
@@ -37,5 +37,26 @@ test('should not fire when value is unchanged', () => {
 
   expect(log).toEqual([
     'callback n=12'
+  ]);
+});
+
+test('should be possible to combine state with template string', () => {
+  const aState = state(1);
+  const bState = state('foo');
+  const msg = textVal`a = ${aState}, b = ${bState}`;
+
+  expect(msg.getValue()).toBe('a = 1, b = foo');
+
+  const scope = new SimpleScope();
+  const log: string[] = [];
+  msg.bind(scope, m => log.push(m));
+
+  bState.setValue('bar');
+  aState.setValue(2);
+
+  expect(log).toEqual([
+    'a = 1, b = foo',
+    'a = 1, b = bar',
+    'a = 2, b = bar'
   ]);
 });

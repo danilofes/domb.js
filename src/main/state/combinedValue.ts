@@ -1,5 +1,6 @@
 import { Callback, IScope, IValueChangeEvent, IValueSource, Unsubscribe } from "./events";
 import { SimpleScope } from "./simpleScope";
+import { asValueSource } from "./constValue";
 
 export type UnwrapedValueSource<T> = T extends IValueSource<infer V> ? V : never;
 
@@ -69,4 +70,20 @@ class CombinedValue<A extends readonly any[], T> extends SimpleScope implements 
       this.unsubscribeAll();
     }
   }
+}
+
+export function textVal(arg0: TemplateStringsArray, ...args: unknown[]): IValueSource<string> {
+  const valueSources = args.map(asValueSource);
+  return combine(valueSources, values => {
+    return applyTemplateString(arg0, values);
+  });
+}
+
+function applyTemplateString(strs: TemplateStringsArray, args: unknown[]): string {
+  var result: string = strs[0];
+  for (var i = 1; i < strs.length; i++) {
+    result += args[i - 1];
+    result += strs[i];
+  }
+  return result;
 }

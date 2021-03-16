@@ -1,4 +1,4 @@
-import { IValueSource, asValueSource, isValueSource, combine } from '../state';
+import { IValueSource, asValueSource, isValueSource, textVal } from '../state';
 import { INonVoidDombNode, AbstractDombNode } from './dombNode';
 
 
@@ -27,20 +27,6 @@ export function text(arg0: string | number | IValueSource<unknown> | TemplateStr
   } else if (isValueSource(arg0)) {
     return new DombTextNode(arg0);
   } else {
-    const valueSources = args.map(asValueSource);
-    return new DombTextNode(
-      combine(valueSources, values => {
-        applyTemplateString(arg0, values);
-      })
-    );
+    return new DombTextNode(textVal(arg0, ...args));
   }
-}
-
-function applyTemplateString(strs: TemplateStringsArray, ...args: unknown[]): string {
-  var result: string = strs[0];
-  for (var i = 1; i < strs.length; i++) {
-    result += args[i - 1];
-    result += strs[i];
-  }
-  return result;
 }

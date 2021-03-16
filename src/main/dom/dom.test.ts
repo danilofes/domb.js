@@ -82,6 +82,19 @@ test("$repeat directive", () => {
   expect(rootEl.children.length).toBe(0);
 });
 
+test("text template tag", () => {
+  const rootEl = createEl('div');
+  const counter = state(1);
+
+  root(rootEl).children(
+    text`the counter is ${counter}`
+  );
+  expect(rootEl.textContent).toBe("the counter is 1");
+
+  counter.setValue(2);
+  expect(rootEl.textContent).toBe("the counter is 2");
+});
+
 function createEl(tag: string): HTMLElement {
   return document.createElement(tag);
 }
