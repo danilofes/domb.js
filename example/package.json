@@ -1,8 +1,0 @@
-{
-  "name": "domb-example",
-  "description": "Domb Example",
-  "private": true,
-  "dependencies": {
-    "domb": "file:.."
-  }
-}

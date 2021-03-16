@@ -1,12 +1,11 @@
-import { root, $if, $repeat, el, on, text, properties, model, state } from "domb";
-
+import { root, $if, $repeat, el, on, text, properties, model, state } from "..";
 
 interface ITask {
   done: boolean,
   description: string
 };
 
-export function mountTodoApp2() {
+export function mountTodoApp2(rootEl: HTMLElement) {
   const taskDescription = state("");
   const tasks = state<ITask[]>([]);
   const count = tasks.$.length;
@@ -24,7 +23,7 @@ export function mountTodoApp2() {
     return () => tasks.updater.removeAt(i);
   }
 
-  root(document.getElementById("todoApp2")).children(
+  root(rootEl).children(
     el.form(
       on.submit(addTask),
 

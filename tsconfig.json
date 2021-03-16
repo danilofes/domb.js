@@ -4,9 +4,7 @@
     "strict": true,
     "module": "commonjs",
     "declaration": true,
-    "outDir": "../dist"
+    "outDir": "./dist"
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

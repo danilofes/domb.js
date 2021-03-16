@@ -1,4 +1,4 @@
-import { DNode, If, Input, El, Repeat, empty, arrayReplaceAt, arrayRemoveAt, equalTo, greaterThan, Var, template, filterVals, IVal, HashVar } from 'domb';
+import { DNode, If, Input, El, Repeat, empty, arrayReplaceAt, arrayRemoveAt, equalTo, greaterThan, Var, template, filterVals, IVal, HashVar } from '..';
 
 interface TodoItem {
   done: boolean,
@@ -28,7 +28,7 @@ export function todoApp(): DNode {
     route = HashVar().map(r => r || '#/'),
     currentFilter = route.map(routeToFilter),
     undoneCount = todoList.map(todos => todos.filter(showActive).length),
-    filteredTodoList = filterVals(todoList, currentFilter, (todo, predicate) => predicate(todo));
+    filteredTodoList = filterVals(todoList, currentFilter, (todo: TodoItem, predicate) => predicate(todo));
 
   function addTodo() {
     todoList.setValue([...todoList.value, { done: false, description: todoInput.value }]);
