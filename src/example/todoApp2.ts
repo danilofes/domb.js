@@ -39,7 +39,7 @@ export function mountTodoApp2(rootEl: HTMLElement) {
           el.li(
             el.inputCheckbox(model(task.$.done)),
             text(task.$.description),
-            el.button(text("Delete task"), on.click(deleteTask(i)))
+            el.button(properties({ type: "button" }), text("Delete task"), on.click(deleteTask(i)))
           )
         )
       ),

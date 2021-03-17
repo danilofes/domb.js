@@ -59,27 +59,45 @@ test("$if directive", () => {
 });
 
 test("$repeat directive", () => {
-  const rootEl = createEl('table');
+  const rootEl = createEl('div');
+  const counterEl = createEl('div');
   const fruits = state([{ name: "apple" }, { name: "orange" }]);
   root(rootEl).children(
     $repeat(fruits, (fruit, i) =>
-      el.tr(
-        el.td(text(i)),
-        el.td(text(fruit.$.name))
+      el.div(
+        text`${i}: ${fruit.$.name}`,
+        el.button(text("X"), on.click(() => fruits.updater.removeAt(i)))
       )
     )
   );
+  root(counterEl).children(
+    text`${fruits.$.length}`
+  )
 
   expect(rootEl.children.length).toBe(2);
-  expect(rootEl.children[0].outerHTML).toBe("<tr><td>0</td><td>apple</td></tr>");
-  expect(rootEl.children[1].outerHTML).toBe("<tr><td>1</td><td>orange</td></tr>");
+  expect(counterEl.textContent).toBe("2");
+  expect(rootEl.children[0].outerHTML).toBe("<div>0: apple<button>X</button></div>");
+  expect(rootEl.children[1].outerHTML).toBe("<div>1: orange<button>X</button></div>");
 
   fruits.updater.append({ name: "banana" });
   expect(rootEl.children.length).toBe(3);
-  expect(rootEl.children[2].outerHTML).toBe("<tr><td>2</td><td>banana</td></tr>");
+  expect(counterEl.textContent).toBe("3");
+  expect(rootEl.children[2].outerHTML).toBe("<div>2: banana<button>X</button></div>");
+
+  
+  rootEl.children[1].querySelector("button")!.click();
+
+  expect(rootEl.children.length).toBe(2);
+  expect(counterEl.textContent).toBe("2");
+  expect(rootEl.children[0].outerHTML).toBe("<div>0: apple<button>X</button></div>");
+  expect(rootEl.children[1].outerHTML).toBe("<div>1: banana<button>X</button></div>");
+  
+  fruits.updater.removeAt(1);
+  expect(counterEl.textContent).toBe("1");
 
   fruits.setValue([]);
   expect(rootEl.children.length).toBe(0);
+  expect(counterEl.textContent).toBe("0");
 });
 
 test("text template tag", () => {
