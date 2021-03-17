@@ -1,6 +1,7 @@
 import { Callback, IScope, IValueChangeEvent, IValueSource, Unsubscribe } from "./events";
 import { SimpleScope } from "./simpleScope";
 import { asValueSource } from "./constValue";
+import { map } from "./mappedValue";
 
 export type UnwrapedValueSource<T> = T extends IValueSource<infer V> ? V : never;
 
@@ -9,7 +10,11 @@ export type UnwrapedValueSourceTuple<T extends readonly IValueSource<any>[]> = {
 };
 
 export function combine<A extends readonly IValueSource<any>[], T>(sources: A, compute: (args: UnwrapedValueSourceTuple<A>) => T): IValueSource<T> {
-  return new CombinedValue<A, T>(sources, compute);
+  if (sources.length === 1) {
+    return map<T, any>(sources[0], (v0) => compute([v0] as any))
+  } else {
+    return new CombinedValue<A, T>(sources, compute);
+  }
 }
 
 
@@ -49,11 +54,12 @@ class CombinedValue<A extends readonly any[], T> extends SimpleScope implements 
   start() {
     if (!this.started) {
       this.started = true;
-      this.lastValue = this.computeValue();
+      this.lastValue = this.getValue();
       const onSourceChange = () => {
         const prevValue = this.lastValue as T;
         const newValue = this.getValue();
         if (newValue !== prevValue) {
+          this.lastValue = newValue;
           this.listeners.forEach(callback => callback({ newValue, prevValue }));
         }
       }

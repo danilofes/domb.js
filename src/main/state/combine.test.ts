@@ -33,9 +33,14 @@ test('should not fire when value is unchanged', () => {
   const log: string[] = [];
   areaState.bind(scope, n => log.push(`callback n=${n}`));
 
-  rectangleState.setValue({ w: 4, h: 3 });
+  rectangleState.setValue({ w: 4, h: 3 }); // 12 should not fire
+  rectangleState.setValue({ w: 1, h: 6 }); // 6
+  rectangleState.setValue({ w: 2, h: 3 }); // 6 should not fire
+  rectangleState.setValue({ w: 4, h: 3 }); // 12
 
   expect(log).toEqual([
+    'callback n=12',
+    'callback n=6',
     'callback n=12'
   ]);
 });
@@ -59,4 +64,23 @@ test('should be possible to combine state with template string', () => {
     'a = 1, b = bar',
     'a = 2, b = bar'
   ]);
+});
+
+
+test('should not alter behavior', () => {
+  const aState = state(1);
+  const aStateStr = textVal`${aState}`;
+  const logA: number[] = [];
+  const logAStr: string[] = [];
+  const scope = new SimpleScope();
+  aState.bind(scope, a => logA.push(a));
+  aStateStr.bind(scope, aStr => logAStr.push(aStr));
+
+  aState.setValue(2);
+  aState.setValue(3);
+  aState.setValue(1);
+  aState.setValue(3);
+
+  expect(logA).toEqual([1, 2, 3, 1, 3]);
+  expect(logAStr).toEqual(["1", "2", "3", "1", "3"]);
 });
