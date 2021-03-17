@@ -2,6 +2,7 @@ import { Callback, IScope, IValueChangeEvent, IValueSource, Unsubscribe } from "
 import { SimpleScope } from "./simpleScope";
 import { asValueSource } from "./constValue";
 import { map } from "./mappedValue";
+import { ConstValue } from "./constValue";
 
 export type UnwrapedValueSource<T> = T extends IValueSource<infer V> ? V : never;
 
@@ -10,11 +11,7 @@ export type UnwrapedValueSourceTuple<T extends readonly IValueSource<any>[]> = {
 };
 
 export function combine<A extends readonly IValueSource<any>[], T>(sources: A, compute: (args: UnwrapedValueSourceTuple<A>) => T): IValueSource<T> {
-  if (sources.length === 1) {
-    return map<T, any>(sources[0], (v0) => compute([v0] as any))
-  } else {
-    return new CombinedValue<A, T>(sources, compute);
-  }
+  return new CombinedValue<A, T>(sources, compute);
 }
 
 
@@ -80,9 +77,15 @@ class CombinedValue<A extends readonly any[], T> extends SimpleScope implements 
 
 export function textVal(arg0: TemplateStringsArray, ...args: unknown[]): IValueSource<string> {
   const valueSources = args.map(asValueSource);
-  return combine(valueSources, values => {
-    return applyTemplateString(arg0, values);
-  });
+  if (valueSources.length === 0) {
+    return new ConstValue(applyTemplateString(arg0, []));
+  } else if (valueSources.length === 1) {
+    return map(valueSources[0], (v0) => applyTemplateString(arg0, [v0]))
+  } else {
+    return combine(valueSources, values => {
+      return applyTemplateString(arg0, values);
+    });
+  }
 }
 
 function applyTemplateString(strs: TemplateStringsArray, args: unknown[]): string {
