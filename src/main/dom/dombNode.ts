@@ -13,8 +13,8 @@ export interface INonVoidDombNode<N extends Node = Node> extends IDombNode<N> {
   unmountChild(child: IDombNode): void;
 }
 
-export interface IModifier<N extends IDombNode, E = {}> {
-  applyToNode(dombNode: N, node: E): void;
+export interface IModifier<N extends IDombNode> {
+  applyToNode(dombNode: N): void;
 }
 
 export interface INodeWithModel<V> extends IDombNode {

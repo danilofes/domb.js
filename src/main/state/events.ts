@@ -26,6 +26,10 @@ export interface IValueSource<T> extends IEventEmmiter<IValueChangeEvent<T>> {
   bind(scope: IScope, callback: Callback<T>): Unsubscribe;
 }
 
+export type ValueLike<T> = IValueSource<T> | T;
+
+export type UnwrapedValue<T> = T extends IValueSource<infer U> ? U : T;
+
 export interface IState<T> extends IValueSource<T>, IEventReceiver<T> {
   setValue(newValue: T): void;
 

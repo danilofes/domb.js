@@ -1,6 +1,6 @@
-import { DombDynamicHtmlElement } from './dombHtmlElement';
+import { DombDynamicHtmlElement, IDombHtmlElement } from './dombHtmlElement';
 import { DombHtmlInputText, DombHtmlInputCheckbox, DombHtmlInputSubmit } from './dombHtmlInputElements';
-import { IModifier } from './dombNode';
+import { IModifier, IDombNode } from './dombNode';
 
 export const el = {
   form: dombElementOf('form'),
@@ -12,18 +12,18 @@ export const el = {
   table: dombElementOf('table'),
   tr: dombElementOf('tr'),
   td: dombElementOf('td'),
-  inputText: function (...modifiers: IModifier<DombHtmlInputText, HTMLInputElement>[]) {
+  inputText: function (...modifiers: IModifier<DombHtmlInputText>[]) {
     return new DombHtmlInputText(modifiers);
   },
-  inputCheckbox: function (...modifiers: IModifier<DombHtmlInputCheckbox, HTMLInputElement>[]) {
+  inputCheckbox: function (...modifiers: IModifier<DombHtmlInputCheckbox>[]) {
     return new DombHtmlInputCheckbox(modifiers);
   },
-  inputSubmit: function (...modifiers: IModifier<DombHtmlInputSubmit, HTMLInputElement>[]) {
+  inputSubmit: function (...modifiers: IModifier<DombHtmlInputSubmit>[]) {
     return new DombHtmlInputSubmit(modifiers);
   }
 }
 
-function dombElementOf<K extends keyof HTMLElementTagNameMap>(tagName: K): (...modifiers: IModifier<DombDynamicHtmlElement<K>, HTMLElementTagNameMap[K]>[]) => DombDynamicHtmlElement<K> {
+function dombElementOf<K extends keyof HTMLElementTagNameMap>(tagName: K): (...modifiers: IModifier<IDombHtmlElement<HTMLElementTagNameMap[K]>>[]) => DombDynamicHtmlElement<K> {
   return function (...modifiers) {
     // TODO
     return new DombDynamicHtmlElement<K>(tagName, modifiers);

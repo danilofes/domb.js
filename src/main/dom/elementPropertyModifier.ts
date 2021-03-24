@@ -1,30 +1,33 @@
 import { IDombNode, IModifier } from './dombNode';
-import { ValueLike, asValueSource, IScope } from '../state';
+import { ValueLike, asValueSource, IScope, UnwrapedValue } from '../state';
 
-type IPropertiesConfig<T> = {
-  [K in (string & keyof T)]?: ValueLike<T[K]>
+interface IPropsConfig {
+  [key: string]: ValueLike<any>
 }
 
-export function properties<T>(props: IPropertiesConfig<T>): IModifier<IDombNode, T> {
+type PropsOfConfig<C extends IPropsConfig> = {
+  [K in keyof C]: UnwrapedValue<C[K]>
+}
+
+export function properties<T extends IPropsConfig>(props: T): IModifier<IDombNode<Node & PropsOfConfig<T>>> {
   return {
-    applyToNode(dombNode: IDombNode, node: T) {
+    applyToNode(dombNode: IDombNode<Node & PropsOfConfig<T>>) {
       for (let key in props) {
-        const propKey = key as string & keyof T;
-        bindProperty(dombNode, node, propKey, props[propKey]!);
+        bindProperty(dombNode, dombNode.getDomNode(), key, props[key]);
       }
     }
   };
 }
 
-export function prop<K extends string, V>(propKey: K, value: ValueLike<V>): IModifier<IDombNode, { [key in K]: V }> {
+export function prop<K extends string, V>(propKey: K, value: ValueLike<V>): IModifier<IDombNode<Node & { [key in K]: V }>> {
   return {
-    applyToNode(dombNode: IDombNode, node: { [key in K]: V }) {
-      bindProperty(dombNode, node, propKey, value);
+    applyToNode(dombNode: IDombNode<Node & { [key in K]: V }>) {
+      bindProperty<{ [key in K]: V }, K>(dombNode, dombNode.getDomNode(), propKey, value);
     }
   };
 }
 
-function bindProperty<T, K extends (string & keyof T)>(scope: IScope, node: T, propKey: K, value: ValueLike<T[K]>) {
+function bindProperty<T, K extends keyof T>(scope: IScope, node: T, propKey: K, value: ValueLike<T[K]>) {
   asValueSource(value).bind(scope, propValue => {
     node[propKey] = propValue;
   });

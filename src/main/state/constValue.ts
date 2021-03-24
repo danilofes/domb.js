@@ -1,6 +1,5 @@
-import { Callback, IScope, IValueChangeEvent, IValueSource, Unsubscribe, isValueSource } from "./events";
+import { Callback, IScope, IValueChangeEvent, IValueSource, Unsubscribe, isValueSource, ValueLike } from "./events";
 
-export type ValueLike<T> = IValueSource<T> | T;
 
 export function asValueSource<T>(vsOrV: ValueLike<T>): IValueSource<T> {
   if (isValueSource(vsOrV)) {
