@@ -1,21 +1,25 @@
 import { IValueSource, asValueSource, isValueSource, textVal } from '../state';
-import { INonVoidDombNode, AbstractDombNode } from './dombNode';
+import { DombNode, IModifier } from './dombNode';
 
 
-export class DombTextNode extends AbstractDombNode<Text> {
+export class DombTextNode extends DombNode<Text> implements IModifier<DombNode> {
 
   constructor(private textVs: IValueSource<unknown>) {
     super(document.createTextNode(''));
   }
 
-  init(parent: INonVoidDombNode): void {
-    this.textVs.bind(this, value => {
-      this.getDomNode().nodeValue = String(value);
-    })
+  acceptsChild(childNode: DombNode): boolean {
+    return false;
   }
 
-  applyToNode(node: INonVoidDombNode) {
-    node.mountChild(this);
+  onMount(): void {
+    this.textVs.bind(this, value => {
+      this.getDomNode().nodeValue = String(value);
+    });
+  }
+
+  applyToNode(dombNode: DombNode) {
+    dombNode.mountChild(this);
   };
 }
 

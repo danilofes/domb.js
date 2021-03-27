@@ -1,10 +1,10 @@
 import { IScope } from '../state';
 import { IUnsubscribe } from '../vars/vars';
-import { IDombNode, IModifier } from './dombNode';
+import { DombNode, IModifier } from './dombNode';
 
-export function onEvent<K extends keyof HTMLElementEventMap>(eventName: K): (callback: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any) => IModifier<IDombNode<HTMLElement>> {
+export function onEvent<K extends keyof HTMLElementEventMap>(eventName: K): (callback: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any) => IModifier<DombNode<HTMLElement>> {
   return (callback) => ({
-    applyToNode(dombNode: IDombNode<HTMLElement>) {
+    applyToNode(dombNode: DombNode<HTMLElement>) {
       bindDomEvent(dombNode, dombNode.getDomNode(), eventName, callback);
     }
   });

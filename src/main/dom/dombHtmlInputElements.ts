@@ -1,15 +1,17 @@
 import { IUnsubscribe } from '../vars/vars';
 import { DombDynamicHtmlElement } from './dombHtmlElement';
-import { IModifier, INodeWithModel } from './dombNode';
-import { prop } from './elementPropertyModifier';
+import { IModifier } from './dombNode';
 import { bindDomEvent } from './eventHandlerModifier';
+
+export interface INodeWithModel<V> {
+  setModelValue(value: V): void;
+  onModelValueChange(callback: (newV: V) => void): IUnsubscribe;
+}
 
 export class DombHtmlInputText extends DombDynamicHtmlElement<"input"> implements INodeWithModel<string> {
   constructor(modifiers: IModifier<DombHtmlInputText>[]) {
-    super("input", [
-      prop("type", "text"),
-      ...modifiers
-    ]);
+    super("input", modifiers);
+    this.getDomNode().type = "text";
   }
 
   setModelValue(value: string): void {
@@ -23,10 +25,8 @@ export class DombHtmlInputText extends DombDynamicHtmlElement<"input"> implement
 
 export class DombHtmlInputCheckbox extends DombDynamicHtmlElement<"input"> implements INodeWithModel<boolean> {
   constructor(modifiers: IModifier<DombHtmlInputCheckbox>[]) {
-    super("input", [
-      prop("type", "checkbox"),
-      ...modifiers
-    ]);
+    super("input", modifiers);
+    this.getDomNode().type = "checkbox";
   }
 
   setModelValue(value: boolean): void {
@@ -40,9 +40,7 @@ export class DombHtmlInputCheckbox extends DombDynamicHtmlElement<"input"> imple
 
 export class DombHtmlInputSubmit extends DombDynamicHtmlElement<"input"> {
   constructor(modifiers: IModifier<DombHtmlInputSubmit>[]) {
-    super("input", [
-      prop("type", "submit"),
-      ...modifiers
-    ]);
+    super("input", modifiers);
+    this.getDomNode().type = "submit";
   }
 }

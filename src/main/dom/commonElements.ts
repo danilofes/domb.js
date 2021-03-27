@@ -1,6 +1,6 @@
-import { DombDynamicHtmlElement, IDombHtmlElement } from './dombHtmlElement';
+import { DombDynamicHtmlElement } from './dombHtmlElement';
 import { DombHtmlInputText, DombHtmlInputCheckbox, DombHtmlInputSubmit } from './dombHtmlInputElements';
-import { IModifier, IDombNode } from './dombNode';
+import { IModifier } from './dombNode';
 
 export const el = {
   form: dombElementOf('form'),
@@ -23,9 +23,8 @@ export const el = {
   }
 }
 
-function dombElementOf<K extends keyof HTMLElementTagNameMap>(tagName: K): (...modifiers: IModifier<IDombHtmlElement<HTMLElementTagNameMap[K]>>[]) => DombDynamicHtmlElement<K> {
+function dombElementOf<K extends keyof HTMLElementTagNameMap>(tagName: K): (...modifiers: IModifier<DombDynamicHtmlElement<K>>[]) => DombDynamicHtmlElement<K> {
   return function (...modifiers) {
-    // TODO
     return new DombDynamicHtmlElement<K>(tagName, modifiers);
   }
 }

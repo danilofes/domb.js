@@ -1,12 +1,15 @@
 import { IValueSource } from '../state';
-import { IDombNode, AbstractDombNode } from './dombNode';
+import { DombNode } from './dombNode';
 
-export class IfDirective extends AbstractDombNode<Comment> {
+export class IfDirective extends DombNode<Comment> {
+  mountedNode?: DombNode;
 
-  mountedNode?: IDombNode;
-
-  constructor(private condition: IValueSource<unknown>, private nodeFactoryTrue: () => IDombNode) {
+  constructor(private condition: IValueSource<unknown>, private nodeFactoryTrue: () => DombNode) {
     super(document.createComment('if node'));
+  }
+
+  acceptsChild(childNode: DombNode): boolean {
+    return false;
   }
 
   onMount() {
@@ -17,22 +20,22 @@ export class IfDirective extends AbstractDombNode<Comment> {
     if (shouldMount) {
       if (!this.mountedNode) {
         this.mountedNode = this.nodeFactoryTrue();
-        this.getParent().mountChild(this.mountedNode, this.getDomNode());
+        this.getParent()!.mountChild(this.mountedNode, this.getDomNode());
       }
     } else {
       if (this.mountedNode) {
-        this.getParent().unmountChild(this.mountedNode);
+        this.getParent()!.unmountChild(this.mountedNode);
         delete this.mountedNode;
       }
     }
   }
 
-  destroySelf() {
+  onDestroy() {
     this.toggleNode(false);
-    super.destroySelf();
+    super.onDestroy();
   }
 }
 
-export function $if(condition: IValueSource<unknown>, nodeFactoryTrue: () => IDombNode) {
+export function $if(condition: IValueSource<unknown>, nodeFactoryTrue: () => DombNode) {
   return new IfDirective(condition, nodeFactoryTrue);
 }
