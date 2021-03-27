@@ -190,6 +190,15 @@ export class StateUpdater {
     }
   }
 
+  replaceAt(index: number, element: any): void {
+    const v = this.state.getValue();
+    if (Array.isArray(v)) {
+      this.state.setValue([...v.slice(0, index), element, ...v.slice(index + 1)]);
+    } else {
+      throw Error('state does not hold an array');
+    }
+  }
+
   patch(fields: any): void {
     const v = this.state.getValue();
     if (typeof v === 'object' && v !== null) {

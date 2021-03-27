@@ -13,15 +13,11 @@ export interface IScope {
   unsubscribeAll(): void;
 }
 
-export interface IEventEmmiter<T> {
+export interface IEventSource<T> {
   subscribe(scope: IScope, callback: Callback<T>): Unsubscribe;
 }
 
-export interface IEventReceiver<T> {
-  push(event: T): void;
-}
-
-export interface IValueSource<T> extends IEventEmmiter<IValueChangeEvent<T>> {
+export interface IValueSource<T> extends IEventSource<IValueChangeEvent<T>> {
   getValue(): T;
   bind(scope: IScope, callback: Callback<T>): Unsubscribe;
 }
@@ -30,13 +26,12 @@ export type ValueLike<T> = IValueSource<T> | T;
 
 export type UnwrapedValue<T> = T extends IValueSource<infer U> ? U : T;
 
-export interface IState<T> extends IValueSource<T>, IEventReceiver<T> {
+export interface IState<T> extends IValueSource<T> {
   setValue(newValue: T): void;
 
   $: IFieldAccessor<T>;
   atIndex(i: number): T extends ReadonlyArray<infer E> ? IState<E> : never;
   bind(scope: IScope, callback: Callback<T>): Unsubscribe;
-  push(event: T): void;
   withFallbackValue(value: NonNullable<T>): IState<NonNullable<T>>;
 }
 
@@ -50,6 +45,7 @@ export type IStateUpdater<T> =
   T extends ReadonlyArray<infer E> ? {
     append(element: E): void;
     removeAt(index: number): void;
+    replaceAt(index: number, element: E): void;
   }
   : T extends object ? {
     patch(fields: Partial<T>): void;
