@@ -64,7 +64,7 @@ export class DombDynamicHtmlElement<K extends keyof HTMLElementTagNameMap> exten
 
   onMount() {
     for (const m of this.modifiers) {
-      m.applyToNode(this, this.getDomNode());
+      m.applyToNode(this);
     }
   }
 
