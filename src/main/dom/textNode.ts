@@ -4,13 +4,13 @@ import { INonVoidDombNode, AbstractDombNode } from './dombNode';
 
 export class DombTextNode extends AbstractDombNode<Text> {
 
-  constructor(private textValue: IValueSource<unknown>) {
+  constructor(private textVs: IValueSource<unknown>) {
     super(document.createTextNode(''));
   }
 
   init(parent: INonVoidDombNode): void {
-    this.textValue.bind(this, value => {
-      this.getDomNode().textContent = String(value);
+    this.textVs.bind(this, value => {
+      this.getDomNode().nodeValue = String(value);
     })
   }
 
