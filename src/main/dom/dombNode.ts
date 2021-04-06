@@ -74,6 +74,13 @@ export abstract class DombNode<N extends Node = Node> extends SimpleScope implem
     }
   }
 
+  children(...children: DombNode[]) {
+    this.removeChildren();
+    for (const child of children) {
+      this.addChild(child);
+    }
+  }
+
   destroy() {
     if (this.parent !== null) {
       throw new Error(`Domb nodes with a parent should call parent.unmountChild(node)`);

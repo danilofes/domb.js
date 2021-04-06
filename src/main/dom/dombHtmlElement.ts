@@ -8,12 +8,6 @@ export abstract class DombHtmlElement<E extends HTMLElement> extends DombNode<E>
   acceptsChild(child: DombNode) {
     return true;
   }
-
-  children(...children: DombNode[]) {
-    for (const child of children) {
-      this.addChild(child);
-    }
-  }
 }
 
 export class DombStaticHtmlElement<E extends HTMLElement> extends DombHtmlElement<E> {
