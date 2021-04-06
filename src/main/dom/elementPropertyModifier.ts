@@ -13,7 +13,7 @@ export function properties<T extends IPropsConfig>(props: T): IModifier<DombNode
   return {
     applyToNode(dombNode: DombNode<Node & PropsOfConfig<T>>) {
       for (let key in props) {
-        bindProperty(dombNode, dombNode.getDomNode(), key, props[key]);
+        bindProperty(dombNode, dombNode.domNode, key, props[key]);
       }
     }
   };
@@ -22,7 +22,7 @@ export function properties<T extends IPropsConfig>(props: T): IModifier<DombNode
 export function prop<K extends string, V>(propKey: K, value: ValueLike<V>): IModifier<DombNode<Node & { [key in K]: V }>> {
   return {
     applyToNode(dombNode: DombNode<Node & { [key in K]: V }>) {
-      bindProperty<{ [key in K]: V }, K>(dombNode, dombNode.getDomNode(), propKey, value);
+      bindProperty<{ [key in K]: V }, K>(dombNode, dombNode.domNode, propKey, value);
     }
   };
 }

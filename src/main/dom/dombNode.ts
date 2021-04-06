@@ -3,78 +3,88 @@ import { SimpleScope } from '../state';
 type NodeStatus = 'unmounted' | 'mounted' | 'destroyed';
 
 export abstract class DombNode<N extends Node = Node> extends SimpleScope implements IModifier<DombNode> {
-  private parent: DombNode | null = null;
+  protected parent: DombNode | null = null;
   protected status: NodeStatus = 'unmounted';
-  private childrenArray: DombNode[] = [];
-  private domNode: N;
+  private _children: DombNode[] = [];
+  private _domNode: N;
 
   constructor(node: N) {
     super();
-    this.domNode = node;
+    this._domNode = node;
   }
 
-  protected getParent(): DombNode | null {
-    if (this.status !== 'mounted') {
-      throw new Error(`Cannot get parent of ${this.status} node`);
-    }
-    return this.parent;
-  }
-
-  getDomNode(): N {
-    return this.domNode;
+  get domNode(): N {
+    return this._domNode;
   };
 
-  mountChild(child: DombNode, beforeNode?: Node) {
+  addChild(child: DombNode, beforeNode?: Node) {
     if (!this.acceptsChild(child)) {
       throw new Error(`This node cannot accept children`);
     }
-    this.getDomNode().insertBefore(child.getDomNode(), beforeNode ?? null);
+    this._children.push(child);
     child.parent = this;
-    child.status = 'mounted';
-    this.childrenArray.push(child);
-    child.onMount();
+    if (this.status === 'mounted') {
+      this.mountChild(child, beforeNode);
+    }
   }
 
-  unmountChild(dombNode: DombNode): void {
-    const idx = this.childrenArray.indexOf(dombNode);
+  removeChild(child: DombNode, beforeNode?: Node) {
+    const idx = this._children.indexOf(child);
     if (idx !== -1) {
-      dombNode.onDestroy();
-      dombNode.destroySelf();
-      dombNode.parent = null;
-      dombNode.status = 'destroyed';
-      this.childrenArray.splice(idx, 1);
-      this.getDomNode().removeChild(dombNode.getDomNode());
+      if (this.status !== 'unmounted') {
+        this.unmountChild(child);
+      }
+      this._children.splice(idx, 1);
+      child.parent = null;
+    }
+  }
+
+  private mountChild(child: DombNode, beforeNode?: Node) {
+    if (child.status === 'unmounted') {
+      this.domNode.insertBefore(child.domNode, beforeNode ?? null);
+      child.status = 'mounted';
+      child.onMount();
+    }
+  }
+
+  private unmountChild(child: DombNode): void {
+    if (child.status === 'mounted') {
+      child.onDestroy();
+      this.domNode.removeChild(child.domNode);
+      child.status = 'destroyed';
     }
   }
 
   abstract acceptsChild(childNode: DombNode): boolean;
 
   protected onMount(): void {
-    // 
+    for (let i = 0; i < this._children.length; i++) {
+      this.mountChild(this._children[i]);
+    }
   }
 
   protected onDestroy(): void {
-    // 
+    this.removeChildren();
+    this.unsubscribeAll();
   }
 
-  private destroySelf(): void {
-    for (let i = this.childrenArray.length - 1; i >= 0; i--) {
-      this.unmountChild(this.childrenArray[i]);
+  private removeChildren(): void {
+    for (let i = this._children.length - 1; i >= 0; i--) {
+      this.removeChild(this._children[i]);
     }
-    this.unsubscribeAll();
   }
 
   destroy() {
     if (this.parent !== null) {
       throw new Error(`Domb nodes with a parent should call parent.unmountChild(node)`);
     } else {
-      this.destroySelf();
       this.status = 'destroyed';
+      this.onDestroy();
     }
   }
 
   applyToNode(dombNode: DombNode): void {
-    dombNode.mountChild(this);
+    dombNode.addChild(this);
   }
 }
 

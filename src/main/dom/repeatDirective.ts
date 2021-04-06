@@ -13,19 +13,20 @@ export class RepeatDirective<T> extends DombNode<Comment> {
   }
 
   onMount() {
+    super.onMount();
     this.values.$.length.bind(this, this.toggleNodes.bind(this));
   }
 
   toggleNodes(numItems: number) {
     for (let i = numItems; i < this.mountedNodes.length; i++) {
-      this.getParent()!.unmountChild(this.mountedNodes[i]);
+      this.parent!.removeChild(this.mountedNodes[i]);
     }
     if (numItems < this.mountedNodes.length) {
       this.mountedNodes.splice(numItems, this.mountedNodes.length - numItems);
     }
     for (let i = this.mountedNodes.length; i < numItems; i++) {
       const newItem = this.buildItem(this.values.atIndex(i), i);
-      this.getParent()!.mountChild(newItem, this.getDomNode());
+      this.parent!.addChild(newItem, this.domNode);
       this.mountedNodes.push(newItem);
     }
   }

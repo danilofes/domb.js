@@ -13,13 +13,14 @@ export class DombTextNode extends DombNode<Text> implements IModifier<DombNode> 
   }
 
   onMount(): void {
+    super.onMount();
     this.textVs.bind(this, value => {
-      this.getDomNode().nodeValue = String(value);
+      this.domNode.nodeValue = String(value);
     });
   }
 
   applyToNode(dombNode: DombNode) {
-    dombNode.mountChild(this);
+    dombNode.addChild(this);
   };
 }
 

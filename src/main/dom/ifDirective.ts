@@ -13,6 +13,7 @@ export class IfDirective extends DombNode<Comment> {
   }
 
   onMount() {
+    super.onMount();
     this.condition.bind(this, this.toggleNode.bind(this));
   }
 
@@ -20,11 +21,11 @@ export class IfDirective extends DombNode<Comment> {
     if (shouldMount) {
       if (!this.mountedNode) {
         this.mountedNode = this.nodeFactoryTrue();
-        this.getParent()!.mountChild(this.mountedNode, this.getDomNode());
+        this.parent!.addChild(this.mountedNode, this.domNode);
       }
     } else {
       if (this.mountedNode) {
-        this.getParent()!.unmountChild(this.mountedNode);
+        this.parent!.removeChild(this.mountedNode);
         delete this.mountedNode;
       }
     }

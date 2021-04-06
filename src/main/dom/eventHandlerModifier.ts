@@ -5,7 +5,7 @@ import { DombNode, IModifier } from './dombNode';
 export function onEvent<K extends keyof HTMLElementEventMap>(eventName: K): (callback: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any) => IModifier<DombNode<HTMLElement>> {
   return (callback) => ({
     applyToNode(dombNode: DombNode<HTMLElement>) {
-      bindDomEvent(dombNode, dombNode.getDomNode(), eventName, callback);
+      bindDomEvent(dombNode, dombNode.domNode, eventName, callback);
     }
   });
 }

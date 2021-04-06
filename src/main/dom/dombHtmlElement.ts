@@ -11,7 +11,7 @@ export abstract class DombHtmlElement<E extends HTMLElement> extends DombNode<E>
 
   children(...children: DombNode[]) {
     for (const child of children) {
-      this.mountChild(child);
+      this.addChild(child);
     }
   }
 }
@@ -36,6 +36,7 @@ export class DombDynamicHtmlElement<K extends keyof HTMLElementTagNameMap> exten
   }
 
   onMount() {
+    super.onMount();
     for (const m of this.modifiers) {
       m.applyToNode(this);
     }

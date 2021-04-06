@@ -11,36 +11,36 @@ export interface INodeWithModel<V> {
 export class DombHtmlInputText extends DombDynamicHtmlElement<"input"> implements INodeWithModel<string> {
   constructor(modifiers: IModifier<DombHtmlInputText>[]) {
     super("input", modifiers);
-    this.getDomNode().type = "text";
+    this.domNode.type = "text";
   }
 
   setModelValue(value: string): void {
-    this.getDomNode().value = value;
+    this.domNode.value = value;
   }
 
   onModelValueChange(callback: (newV: string) => void): IUnsubscribe {
-    return bindDomEvent(this, this.getDomNode(), "input", () => callback(this.getDomNode().value));
+    return bindDomEvent(this, this.domNode, "input", () => callback(this.domNode.value));
   }
 }
 
 export class DombHtmlInputCheckbox extends DombDynamicHtmlElement<"input"> implements INodeWithModel<boolean> {
   constructor(modifiers: IModifier<DombHtmlInputCheckbox>[]) {
     super("input", modifiers);
-    this.getDomNode().type = "checkbox";
+    this.domNode.type = "checkbox";
   }
 
   setModelValue(value: boolean): void {
-    this.getDomNode().checked = value;
+    this.domNode.checked = value;
   }
 
   onModelValueChange(callback: (newV: boolean) => void): IUnsubscribe {
-    return bindDomEvent(this, this.getDomNode(), "click", () => callback(this.getDomNode().checked));
+    return bindDomEvent(this, this.domNode, "click", () => callback(this.domNode.checked));
   }
 }
 
 export class DombHtmlInputSubmit extends DombDynamicHtmlElement<"input"> {
   constructor(modifiers: IModifier<DombHtmlInputSubmit>[]) {
     super("input", modifiers);
-    this.getDomNode().type = "submit";
+    this.domNode.type = "submit";
   }
 }
