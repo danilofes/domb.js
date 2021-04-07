@@ -1,4 +1,4 @@
-import { root, $if, $repeat, el, on, text, properties, model } from ".";
+import { root, $if, $repeat, el, text } from ".";
 import { state } from "../state";
 
 test("static text node", () => {
@@ -27,7 +27,6 @@ test("dynamic text node", () => {
   expect(actualNode.textContent).toBe("new value");
 });
 
-
 test("element nodes with children", () => {
   const rootEl = createEl('div');
   root(rootEl).children(
@@ -38,6 +37,30 @@ test("element nodes with children", () => {
   );
 
   expect(rootEl.innerHTML).toBe("<ul><li></li></ul><span></span>");
+});
+
+test("element with property", () => {
+  const rootEl = createEl('div');
+  root(rootEl).children(
+    el.div({ className: "x" })
+  );
+
+  const actualNode = rootEl.children[0];
+  expect(actualNode.className).toBe("x");
+});
+
+test("element with event handler", () => {
+  const callback = jest.fn();
+  const rootEl = createEl('div');
+  root(rootEl).children(
+    el.button({ onClick: callback }, "click me")
+  );
+
+  const actualNode = rootEl.querySelector("button")!;
+  expect(actualNode.textContent).toBe("click me");
+
+  actualNode.click();
+  expect(callback.mock.calls.length).toBe(1);
 });
 
 test("$if directive", () => {
@@ -65,7 +88,7 @@ test("$repeat directive", () => {
     $repeat(fruits, (fruit, i) =>
       el.div(
         text`${i}: ${fruit.$.name}`,
-        el.button(text("X"), on.click(() => fruits.updater.removeAt(i)))
+        el.button({ onClick: () => fruits.updater.removeAt(i) }, text("X"))
       )
     )
   );
@@ -78,13 +101,13 @@ test("$repeat directive", () => {
   expect(rootEl.children.length).toBe(3);
   expect(rootEl.children[2].outerHTML).toBe("<div>2: banana<button>X</button></div>");
 
-  
+
   rootEl.children[1].querySelector("button")!.click();
 
   expect(rootEl.children.length).toBe(2);
   expect(rootEl.children[0].outerHTML).toBe("<div>0: apple<button>X</button></div>");
   expect(rootEl.children[1].outerHTML).toBe("<div>1: banana<button>X</button></div>");
-  
+
   fruits.updater.removeAt(1);
 
   fruits.setValue([]);

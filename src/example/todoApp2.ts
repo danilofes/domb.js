@@ -1,4 +1,4 @@
-import { root, $if, $repeat, el, on, text, properties, model, state } from "..";
+import { root, $if, $repeat, el, text, state } from "..";
 
 interface ITask {
   done: boolean,
@@ -24,22 +24,18 @@ export function mountTodoApp2(rootEl: HTMLElement) {
   }
 
   root(rootEl).children(
-    el.form(
-      on.submit(addTask),
+    el.form({ onSubmit: addTask },
 
-      el.inputText(
-        properties({ placeholder: "What needs to be done?" }),
-        model(taskDescription)
-      ),
+      el.inputText({ placeholder: "What needs to be done?", model: taskDescription }),
 
-      el.inputSubmit(text("Add task")),
+      el.button("Add task"),
 
       el.ul(
         $repeat(tasks, (task, i) =>
           el.li(
-            el.inputCheckbox(model(task.$.done)),
+            el.inputCheckbox({ model: task.$.done }),
             text(task.$.description),
-            el.button(properties({ type: "button" }), text("Delete task"), on.click(deleteTask(i)))
+            el.button({ type: "button", onClick: deleteTask(i) }, "Delete task")
           )
         )
       ),
@@ -47,11 +43,6 @@ export function mountTodoApp2(rootEl: HTMLElement) {
       $if(count, () =>
         el.div(text`You have ${count} tasks in your todo list.`)
       )
-
-      //$switch(count)
-      //  .$case(0, () => el.div())
-      //  .$case(1, () => el.div())
-      //  .$otherwise(() => el.div())
     )
   );
 }

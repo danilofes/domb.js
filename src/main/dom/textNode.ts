@@ -1,8 +1,8 @@
 import { IValueSource, asValueSource, isValueSource, textVal } from '../state';
-import { DombNode, IModifier } from './dombNode';
+import { DombNode } from './dombNode';
 
 
-export class DombTextNode extends DombNode<Text> implements IModifier<DombNode> {
+export class DombTextNode extends DombNode<Text> {
 
   constructor(private textVs: IValueSource<unknown>) {
     super(document.createTextNode(''));
@@ -18,10 +18,6 @@ export class DombTextNode extends DombNode<Text> implements IModifier<DombNode> 
       this.domNode.nodeValue = String(value);
     });
   }
-
-  applyToNode(dombNode: DombNode) {
-    dombNode.addChild(this);
-  };
 }
 
 export function text(arg0: string | number | IValueSource<unknown> | TemplateStringsArray, ...args: unknown[]): DombTextNode {

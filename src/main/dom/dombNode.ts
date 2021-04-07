@@ -3,7 +3,7 @@ import { IUnsubscribe } from '../vars/vars-api';
 
 type NodeStatus = 'unmounted' | 'mounted' | 'destroyed';
 
-export abstract class DombNode<N extends Node = Node, C = unknown> extends SimpleScope implements IModifier<DombNode> {
+export abstract class DombNode<N extends Node = Node, C = unknown> extends SimpleScope {
   protected parent: DombNode | null = null;
   protected status: NodeStatus = 'unmounted';
   private _children: DombNode[] = [];
@@ -91,10 +91,6 @@ export abstract class DombNode<N extends Node = Node, C = unknown> extends Simpl
     }
   }
 
-  applyToNode(dombNode: DombNode) {
-    dombNode.addChild(this);
-  }
-
   protected applyConfig(config: C): void {
     // should be overriden when necessary
   }
@@ -119,8 +115,4 @@ export abstract class DombNode<N extends Node = Node, C = unknown> extends Simpl
     }
     return this;
   }
-}
-
-export interface IModifier<T extends DombNode> {
-  applyToNode(dombNode: T): void;
 }

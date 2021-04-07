@@ -1,6 +1,6 @@
 import { asValueSource, ValueLike } from '../state';
 import { IUnsubscribe } from '../vars/vars-api';
-import { DombNode, IModifier } from './dombNode';
+import { DombNode } from './dombNode';
 
 
 type ValidNodeProperty<E extends Node, K extends keyof E> = E[K] extends string | number | boolean | null ? K : never;
@@ -22,7 +22,7 @@ export type ElementConfig<E extends HTMLElement> = NodePropertiesConfig<E> & Eve
 
 const EVENT_CONFIG_KEY = /^on([A-Z].*)$/;
 
-export abstract class DombHtmlElement<E extends HTMLElement> extends DombNode<E, ElementConfig<E>> {
+export abstract class DombHtmlElement<E extends HTMLElement, C = ElementConfig<E>> extends DombNode<E, C> {
   constructor(el: E) {
     super(el);
   }
@@ -59,14 +59,13 @@ export abstract class DombHtmlElement<E extends HTMLElement> extends DombNode<E,
       const configValue = (rest as any)[key];
       const match = key.match(EVENT_CONFIG_KEY);
       if (match) {
-        const eventName = match[1] as keyof HTMLElementEventMap;
+        const eventName = match[1].toLowerCase() as keyof HTMLElementEventMap;
         this.on(eventName, configValue);
       } else {
         this.bindProp(key as any, configValue);
       }
     }
   }
-
 }
 
 export class DombStaticHtmlElement<E extends HTMLElement> extends DombHtmlElement<E> {
@@ -76,22 +75,15 @@ export class DombStaticHtmlElement<E extends HTMLElement> extends DombHtmlElemen
   }
 }
 
+export class DombDynamicHtmlElement<K extends keyof HTMLElementTagNameMap, C = ElementConfig<HTMLElementTagNameMap[K]>> extends DombHtmlElement<HTMLElementTagNameMap[K], C> {
+  constructor(tagName: K) {
+    super(document.createElement(tagName));
+  }
+}
+
 export function root<E extends HTMLElement>(element: E | null): DombStaticHtmlElement<E> {
   if (element === null) {
     throw new Error('element should not be null');
   }
   return new DombStaticHtmlElement<E>(element);
-}
-
-export class DombDynamicHtmlElement<K extends keyof HTMLElementTagNameMap> extends DombHtmlElement<HTMLElementTagNameMap[K]> {
-  constructor(tagName: K, private modifiers: IModifier<DombNode<HTMLElementTagNameMap[K]>>[]) {
-    super(document.createElement(tagName));
-  }
-
-  onMount() {
-    super.onMount();
-    for (const m of this.modifiers) {
-      m.applyToNode(this);
-    }
-  }
 }
