@@ -1,11 +1,13 @@
-import { SimpleScope } from '../state';
+import { asValueSource, SimpleScope, ValueLike } from '../state';
+import { IUnsubscribe } from '../vars/vars-api';
 
 type NodeStatus = 'unmounted' | 'mounted' | 'destroyed';
 
-export abstract class DombNode<N extends Node = Node> extends SimpleScope implements IModifier<DombNode> {
+export abstract class DombNode<N extends Node = Node, C = unknown> extends SimpleScope implements IModifier<DombNode> {
   protected parent: DombNode | null = null;
   protected status: NodeStatus = 'unmounted';
   private _children: DombNode[] = [];
+  private _configs?: C[] = [];
   private _domNode: N;
 
   constructor(node: N) {
@@ -47,7 +49,7 @@ export abstract class DombNode<N extends Node = Node> extends SimpleScope implem
     }
   }
 
-  private unmountChild(child: DombNode): void {
+  private unmountChild(child: DombNode) {
     if (child.status === 'mounted') {
       child.onDestroy();
       this.domNode.removeChild(child.domNode);
@@ -58,26 +60,25 @@ export abstract class DombNode<N extends Node = Node> extends SimpleScope implem
   abstract acceptsChild(childNode: DombNode): boolean;
 
   protected onMount(): void {
-    for (let i = 0; i < this._children.length; i++) {
-      this.mountChild(this._children[i]);
+    if (this._configs) {
+      for (let config of this._configs) {
+        this.applyConfig(config);
+      }
+      delete this._configs;
+    }
+    for (let child of this._children) {
+      this.mountChild(child);
     }
   }
 
-  protected onDestroy(): void {
+  protected onDestroy() {
     this.removeChildren();
     this.unsubscribeAll();
   }
 
-  private removeChildren(): void {
+  private removeChildren() {
     for (let i = this._children.length - 1; i >= 0; i--) {
       this.removeChild(this._children[i]);
-    }
-  }
-
-  children(...children: DombNode[]) {
-    this.removeChildren();
-    for (const child of children) {
-      this.addChild(child);
     }
   }
 
@@ -90,8 +91,33 @@ export abstract class DombNode<N extends Node = Node> extends SimpleScope implem
     }
   }
 
-  applyToNode(dombNode: DombNode): void {
+  applyToNode(dombNode: DombNode) {
     dombNode.addChild(this);
+  }
+
+  protected applyConfig(config: C): void {
+    // should be overriden when necessary
+  }
+
+  bindProp<K extends keyof N>(prop: K, vs: ValueLike<N[K]>): IUnsubscribe {
+    return asValueSource(vs).bind(this, value => this._domNode[prop] = value);
+  }
+
+  apply<T extends DombNode<N, C>>(this: T, config: C): T {
+    if (this._configs) {
+      this._configs.push(config);
+    } else {
+      this.applyConfig(config);
+    }
+    return this;
+  }
+
+  children<T extends DombNode>(this: T, ...children: DombNode[]) {
+    this.removeChildren();
+    for (const child of children) {
+      this.addChild(child);
+    }
+    return this;
   }
 }
 
