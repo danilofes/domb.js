@@ -1,4 +1,4 @@
-import { root, $if, $repeat, el, text, state, map, locationHashState, combine, append, removeAt } from "..";
+import { root, $if, $repeat, el, text, state, locationHashState, compute, append, removeAt } from "..";
 
 interface ITask {
   done: boolean,
@@ -9,7 +9,7 @@ export function mountTodoApp(rootEl: HTMLElement) {
   const taskDescription = state("");
   const tasks = state<ITask[]>([]);
   const hash = locationHashState();
-  const pendingCount = map(tasks, tasks => tasks.filter(task => !task.done).length);
+  const pendingCount = compute(tasks, tasks => tasks.filter(task => !task.done).length);
 
   function addTask() {
     const newTask = { done: false, description: taskDescription.getValue() };
@@ -26,11 +26,11 @@ export function mountTodoApp(rootEl: HTMLElement) {
 
       el.inputText({ placeholder: "What needs to be done?", model: taskDescription }),
 
-      el.button({ disabled: map(taskDescription, taskDescription => !taskDescription) }, "Add task"),
+      el.button({ disabled: compute(taskDescription, taskDescription => !taskDescription) }, "Add task"),
 
       el.ul(
         $repeat(tasks, (task, i) => {
-          const isVisible = combine([task.$.done, hash], (done, hash) => !(done && hash === '#/active' || !done && hash === '#/completed'));
+          const isVisible = compute([task.$.done, hash], (done, hash) => !(done && hash === '#/active' || !done && hash === '#/completed'));
 
           return $if(isVisible, () =>
             el.li(

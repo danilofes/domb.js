@@ -11,12 +11,17 @@ export type UnwrapedValueSourceTuple<T extends readonly IValueSource<any>[]> = {
 };
 
 
-export function combine<T, T1, T2>(sources: [IValueSource<T1>, IValueSource<T2>], computeFn: (a1: T1, a2: T2) => T): IValueSource<T>;
-export function combine<T, T1, T2, T3>(sources: [IValueSource<T1>, IValueSource<T2>, IValueSource<T3>], computeFn: (a1: T1, a2: T2, a3: T3) => T): IValueSource<T>;
-export function combine<T, T1, T2, T3, T4>(sources: [IValueSource<T1>, IValueSource<T2>, IValueSource<T3>, IValueSource<T4>], computeFn: (a1: T1, a2: T2, a3: T3, a4: T4) => T): IValueSource<T>;
-export function combine<T, E>(sources: IValueSource<E>[], computeFn: (...args: E[]) => T): IValueSource<T>;
-export function combine<T>(sources: IValueSource<any>[], computeFn: (...args: any) => T): IValueSource<T> {
-  return new CombinedValue<T>(sources, computeFn);
+export function compute<T, T1>(source: IValueSource<T1>, computeFn: (a1: T1) => T): IValueSource<T>;
+export function compute<T, T1, T2>(sources: [IValueSource<T1>, IValueSource<T2>], computeFn: (a1: T1, a2: T2) => T): IValueSource<T>;
+export function compute<T, T1, T2, T3>(sources: [IValueSource<T1>, IValueSource<T2>, IValueSource<T3>], computeFn: (a1: T1, a2: T2, a3: T3) => T): IValueSource<T>;
+export function compute<T, T1, T2, T3, T4>(sources: [IValueSource<T1>, IValueSource<T2>, IValueSource<T3>, IValueSource<T4>], computeFn: (a1: T1, a2: T2, a3: T3, a4: T4) => T): IValueSource<T>;
+export function compute<T, E>(sources: IValueSource<E>[], computeFn: (...args: E[]) => T): IValueSource<T>;
+export function compute<T>(sources: IValueSource<any>[] | IValueSource<any>, computeFn: (...args: any) => T): IValueSource<T> {
+  if (Array.isArray(sources)) {
+    return new CombinedValue<T>(sources, computeFn);
+  } else {
+    return map(sources, computeFn);
+  }
 }
 
 
@@ -87,7 +92,7 @@ export function textVal(arg0: TemplateStringsArray, ...args: unknown[]): IValueS
   } else if (valueSources.length === 1) {
     return map(valueSources[0], (v0) => applyTemplateString(arg0, [v0]))
   } else {
-    return combine(valueSources, (...values) => {
+    return compute(valueSources, (...values) => {
       return applyTemplateString(arg0, values);
     });
   }
