@@ -1,5 +1,4 @@
-import { asValueSource, SimpleScope, ValueLike } from '../state';
-import { IUnsubscribe } from '../vars/vars-api';
+import { asValueSource, SimpleScope, ValueLike, Unsubscribe } from '../state';
 
 type NodeStatus = 'unmounted' | 'mounted' | 'destroyed';
 
@@ -95,7 +94,7 @@ export abstract class DombNode<N extends Node = Node, C = unknown> extends Simpl
     // should be overriden when necessary
   }
 
-  bindProp<K extends keyof N>(prop: K, vs: ValueLike<N[K]>): IUnsubscribe {
+  bindProp<K extends keyof N>(prop: K, vs: ValueLike<N[K]>): Unsubscribe {
     return asValueSource(vs).bind(this, value => this._domNode[prop] = value);
   }
 

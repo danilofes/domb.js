@@ -1,8 +1,3 @@
-import { mount } from '..';
-import { todoApp } from './todoApp';
-import { mountTodoApp2 } from './todoApp2';
+import { mountTodoApp } from './todoApp';
 
-
-mount(todoApp(), document.getElementById("todoApp")!);
-
-mountTodoApp2(document.getElementById("todoApp2")!);
+mountTodoApp(document.getElementById("todoApp")!);

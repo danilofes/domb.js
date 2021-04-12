@@ -1,10 +1,9 @@
-import { IState } from '../state';
-import { IUnsubscribe } from '../vars/vars';
+import { IState, Unsubscribe } from '../state';
 import { DombDynamicHtmlElement, ElementConfig } from './dombHtmlElement';
 
 export interface INodeWithModel<V> {
   setModelValue(value: V): void;
-  onModelValueChange(callback: (newV: V) => void): IUnsubscribe;
+  onModelValueChange(callback: (newV: V) => void): Unsubscribe;
 }
 
 export type ElementConfigWithModel<E extends HTMLElement, V> = ElementConfig<E> & { model?: IState<V> };
@@ -14,7 +13,7 @@ export abstract class DombHtmlInput<V> extends DombDynamicHtmlElement<"input", E
     super("input");
   }
   abstract setModelValue(value: V): void;
-  abstract onModelValueChange(callback: (newV: V) => void): IUnsubscribe;
+  abstract onModelValueChange(callback: (newV: V) => void): Unsubscribe;
 
   protected applyConfig(config: ElementConfig<HTMLInputElement> & { model: IState<V> }): void {
     const { model, ...rest } = config;
@@ -40,7 +39,7 @@ export class DombHtmlInputText extends DombHtmlInput<string> {
     this.domNode.value = value;
   }
 
-  onModelValueChange(callback: (newV: string) => void): IUnsubscribe {
+  onModelValueChange(callback: (newV: string) => void): Unsubscribe {
     return this.on("input", () => callback(this.domNode.value));
   }
 }
@@ -55,7 +54,7 @@ export class DombHtmlInputCheckbox extends DombHtmlInput<boolean> {
     this.domNode.checked = value;
   }
 
-  onModelValueChange(callback: (newV: boolean) => void): IUnsubscribe {
+  onModelValueChange(callback: (newV: boolean) => void): Unsubscribe {
     return this.on("click", () => callback(this.domNode.checked));
   }
 }

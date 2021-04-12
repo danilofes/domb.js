@@ -1,95 +1,58 @@
-import { DNode, If, Input, El, Repeat, empty, arrayReplaceAt, arrayRemoveAt, equalTo, greaterThan, Var, template, filterVals, IVal, HashVar } from '..';
+import { root, $if, $repeat, el, text, state, map, locationHashState, combine } from "..";
 
-interface TodoItem {
+interface ITask {
   done: boolean,
   description: string
-}
+};
 
-type TodoPredicate = (todo: TodoItem) => boolean;
+export function mountTodoApp(rootEl: HTMLElement) {
+  const taskDescription = state("");
+  const tasks = state<ITask[]>([]);
+  const hash = locationHashState();
+  const pendingCount = map(tasks, tasks => tasks.filter(task => !task.done).length);
 
-const
-  showAll: TodoPredicate = () => true,
-  showActive: TodoPredicate = todo => !todo.done,
-  showCompleted: TodoPredicate = todo => todo.done;
-
-function routeToFilter(route: string): TodoPredicate {
-  switch (route) {
-    case '#/active': return showActive;
-    case '#/completed': return showCompleted;
-    default: return showAll;
-  }
-}
-
-export function todoApp(): DNode {
-
-  const
-    todoInput = Var(''),
-    todoList = Var<TodoItem[]>([]),
-    route = HashVar().map(r => r || '#/'),
-    currentFilter = route.map(routeToFilter),
-    undoneCount = todoList.map(todos => todos.filter(showActive).length),
-    filteredTodoList = filterVals(todoList, currentFilter, (todo: TodoItem, predicate) => predicate(todo));
-
-  function addTodo() {
-    todoList.setValue([...todoList.value, { done: false, description: todoInput.value }]);
-    todoInput.setValue('');
+  function addTask() {
+    tasks.updater.append({
+      done: false,
+      description: taskDescription.getValue()
+    });
+    taskDescription.setValue("");
   }
 
-  function toggleTodo(todo: IVal<TodoItem>) {
-    return (checked: boolean) => {
-      const index = todoList.value.indexOf(todo.value);
-      todoList.setValue(arrayReplaceAt(todoList.value, index, { ...todoList.value[index], done: checked }));
-    }
+  function deleteTask(i: number) {
+    return () => tasks.updater.removeAt(i);
   }
 
-  function toggleAll(checked: boolean) {
-    todoList.setValue(todoList.value.map(todo => ({ ...todo, done: checked })));
-  }
+  root(rootEl).children(
+    el.form({ onSubmit: evt => { evt.preventDefault(); addTask() } },
 
-  function deleteTodo(todo: IVal<TodoItem>) {
-    return () => {
-      const index = todoList.value.indexOf(todo.value);
-      todoList.setValue(arrayRemoveAt(todoList.value, index));
-    }
-  }
+      el.inputText({ placeholder: "What needs to be done?", model: taskDescription }),
 
-  return El('div').children(
-    El('form')
-      .on('submit', event => {
-        event.preventDefault();
-        addTodo();
-      })
-      .children(
-        If(todoList.$.length.is(greaterThan(0)),
-          Input('checkbox').checked(undoneCount.is(equalTo(0)), toggleAll)),
-        Input('text').attributes({ 'placeholder': 'What needs to be done?' }).value(todoInput),
-        El('button').text('Add todo').attributes({ 'disabled': todoInput.is(empty) })
+      el.button({ disabled: map(taskDescription, taskDescription => !taskDescription) }, "Add task"),
+
+      el.ul(
+        $repeat(tasks, (task, i) => {
+          const isVisible = combine([task, hash] as const, ([task, hash]) => !(task.done && hash === '#/active' || !task.done && hash === '#/completed'));
+          return $if(isVisible, () =>
+            el.li(
+              el.inputCheckbox({ model: task.$.done }),
+              text(task.$.description),
+              el.button({ type: "button", onClick: deleteTask(i) }, "Delete task")
+            )
+          )
+        })
       ),
-    El('ul').children(
-      Repeat(filteredTodoList, (todo, index) =>
-        El('li').children(
-          Input('checkbox').checked(todo.$.done, toggleTodo(todo)),
-          El('span').text(todo.$.description),
-          El('button').text('x')
-            .on('click', deleteTodo(todo))
-        ))
-    ),
-    El('div').children(
-      TotalCount(),
-      FilterLink('All', '#/'),
-      FilterLink('Active', '#/active'),
-      FilterLink('Completed', '#/completed')
+
+      el.div(
+        el.a({ href: "#/" }, "All"),
+        el.a({ href: "#/active" }, "Active"),
+        el.a({ href: "#/completed" }, "Completed")
+      ),
+
+      $if(pendingCount,
+        () => el.div(text`There are ${pendingCount} items in your todo list.`),
+        () => el.div("There is nothing in your todo list")
+      )
     )
   );
-
-  function TotalCount() {
-    return If(undoneCount.is(equalTo(0)),
-      El('em').text('There is nothing in your todo list'),
-      El('span').text(template`There are ${undoneCount} items in your todo list`))
-  }
-
-  function FilterLink(text: string, href: string) {
-    return El('a').text(text).attributes({ href })
-      .conditionalClass('active', route.is(equalTo(href)));
-  }
 }

@@ -1,5 +1,4 @@
-import { asValueSource, ValueLike } from '../state';
-import { IUnsubscribe } from '../vars/vars-api';
+import { asValueSource, ValueLike, Unsubscribe } from '../state';
 import { DombNode } from './dombNode';
 
 
@@ -31,12 +30,12 @@ export abstract class DombHtmlElement<E extends HTMLElement, C = ElementConfig<E
     return true;
   }
 
-  on<T extends DombHtmlElement<E>, K extends keyof HTMLElementEventMap>(this: T, eventName: K, callback: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any): IUnsubscribe {
+  on<T extends DombHtmlElement<E>, K extends keyof HTMLElementEventMap>(this: T, eventName: K, callback: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any): Unsubscribe {
     this.domNode.addEventListener(eventName, callback);
     return this.addUnsubscribe(() => this.domNode.removeEventListener(eventName, callback));
   }
 
-  bindAttr(attr: string, vs: ValueLike<boolean | string>): IUnsubscribe {
+  bindAttr(attr: string, vs: ValueLike<boolean | string>): Unsubscribe {
     return asValueSource(vs).bind(this, value => {
       if (value === false) {
         this.domNode.removeAttribute(attr);
