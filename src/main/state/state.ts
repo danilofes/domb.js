@@ -1,4 +1,4 @@
-import { Callback, IScope, IState, IStateUpdater, IValueChangeEvent, Unsubscribe, IFieldAccessor } from "./events";
+import { Callback, IScope, IState, IStateUpdater, IValueChangeEvent, Unsubscribe, IFieldAccessor, Updater } from "./events";
 import { onCommitTransaction } from "./transaction";
 
 export function state<T>(initialValue: T): State<T> {
@@ -33,6 +33,10 @@ export abstract class BaseState<T> implements IState<T> {
 
   atIndex(i: number): T extends ReadonlyArray<infer E> ? StateArrayIndex<E> : never {
     return new StateArrayIndex<any>((this as any), i) as any;
+  }
+
+  update(updateFn: Updater<T>) {
+    this.setValue(updateFn(this.getValue()));
   }
 }
 

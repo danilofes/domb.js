@@ -28,6 +28,7 @@ export type UnwrapedValue<T> = T extends IValueSource<infer U> ? U : T;
 
 export interface IState<T> extends IValueSource<T> {
   setValue(newValue: T): void;
+  update(updateFn: Updater<T>): void;
 
   $: IFieldAccessor<T>;
   atIndex(i: number): T extends ReadonlyArray<infer E> ? IState<E> : never;

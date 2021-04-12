@@ -1,4 +1,4 @@
-import { root, $if, $repeat, el, text, state, map, locationHashState, combine } from "..";
+import { root, $if, $repeat, el, text, state, map, locationHashState, combine, append, removeAt } from "..";
 
 interface ITask {
   done: boolean,
@@ -12,15 +12,13 @@ export function mountTodoApp(rootEl: HTMLElement) {
   const pendingCount = map(tasks, tasks => tasks.filter(task => !task.done).length);
 
   function addTask() {
-    tasks.updater.append({
-      done: false,
-      description: taskDescription.getValue()
-    });
+    const newTask = { done: false, description: taskDescription.getValue() };
+    tasks.update(append(newTask));
     taskDescription.setValue("");
   }
 
   function deleteTask(i: number) {
-    return () => tasks.updater.removeAt(i);
+    return () => tasks.update(removeAt(i));
   }
 
   root(rootEl).children(
