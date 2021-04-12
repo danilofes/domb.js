@@ -10,18 +10,23 @@ export type UnwrapedValueSourceTuple<T extends readonly IValueSource<any>[]> = {
   [K in keyof T]: UnwrapedValueSource<T[K]>
 };
 
-export function combine<A extends readonly IValueSource<any>[], T>(sources: A, compute: (args: UnwrapedValueSourceTuple<A>) => T): IValueSource<T> {
-  return new CombinedValue<A, T>(sources, compute);
+
+export function combine<T, T1, T2>(sources: [IValueSource<T1>, IValueSource<T2>], computeFn: (a1: T1, a2: T2) => T): IValueSource<T>;
+export function combine<T, T1, T2, T3>(sources: [IValueSource<T1>, IValueSource<T2>, IValueSource<T3>], computeFn: (a1: T1, a2: T2, a3: T3) => T): IValueSource<T>;
+export function combine<T, T1, T2, T3, T4>(sources: [IValueSource<T1>, IValueSource<T2>, IValueSource<T3>, IValueSource<T4>], computeFn: (a1: T1, a2: T2, a3: T3, a4: T4) => T): IValueSource<T>;
+export function combine<T, E>(sources: IValueSource<E>[], computeFn: (...args: E[]) => T): IValueSource<T>;
+export function combine<T>(sources: IValueSource<any>[], computeFn: (...args: any) => T): IValueSource<T> {
+  return new CombinedValue<T>(sources, computeFn);
 }
 
 
-class CombinedValue<A extends readonly any[], T> extends SimpleScope implements IValueSource<T> {
+class CombinedValue<T> extends SimpleScope implements IValueSource<T> {
 
   private readonly listeners: Set<Callback<IValueChangeEvent<T>>> = new Set();
   private lastValue: T | undefined = undefined;
   private started = false;
 
-  constructor(private sources: A, private compute: (args: UnwrapedValueSourceTuple<A>) => T) {
+  constructor(private sources: IValueSource<any>[], private computeFn: (...args: any[]) => T) {
     super();
   }
 
@@ -30,8 +35,8 @@ class CombinedValue<A extends readonly any[], T> extends SimpleScope implements 
   }
 
   private computeValue(): T {
-    const values: UnwrapedValueSourceTuple<A> = this.sources.map(vs => vs.getValue()) as any;
-    return this.compute(values);
+    const values: any[] = this.sources.map(vs => vs.getValue());
+    return this.computeFn(...values);
   }
 
   subscribe(scope: IScope, callback: Callback<IValueChangeEvent<T>>): Unsubscribe {
@@ -82,7 +87,7 @@ export function textVal(arg0: TemplateStringsArray, ...args: unknown[]): IValueS
   } else if (valueSources.length === 1) {
     return map(valueSources[0], (v0) => applyTemplateString(arg0, [v0]))
   } else {
-    return combine(valueSources, values => {
+    return combine(valueSources, (...values) => {
       return applyTemplateString(arg0, values);
     });
   }

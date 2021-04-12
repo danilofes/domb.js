@@ -32,7 +32,8 @@ export function mountTodoApp(rootEl: HTMLElement) {
 
       el.ul(
         $repeat(tasks, (task, i) => {
-          const isVisible = combine([task, hash] as const, ([task, hash]) => !(task.done && hash === '#/active' || !task.done && hash === '#/completed'));
+          const isVisible = combine([task.$.done, hash], (done, hash) => !(done && hash === '#/active' || !done && hash === '#/completed'));
+
           return $if(isVisible, () =>
             el.li(
               el.inputCheckbox({ model: task.$.done }),
