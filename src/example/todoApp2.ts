@@ -1,4 +1,4 @@
-import { root, $if, $repeat, el, text, state } from "..";
+import { root, $if, $repeat, el, text, state, map, locationHashState, combine } from "..";
 
 interface ITask {
   done: boolean,
@@ -8,10 +8,10 @@ interface ITask {
 export function mountTodoApp2(rootEl: HTMLElement) {
   const taskDescription = state("");
   const tasks = state<ITask[]>([]);
-  const count = tasks.$.length;
+  const hash = locationHashState();
+  const pendingCount = map(tasks, tasks => tasks.filter(task => !task.done).length);
 
-  function addTask(event: Event) {
-    event.preventDefault();
+  function addTask() {
     tasks.updater.append({
       done: false,
       description: taskDescription.getValue()
@@ -24,24 +24,34 @@ export function mountTodoApp2(rootEl: HTMLElement) {
   }
 
   root(rootEl).children(
-    el.form({ onSubmit: addTask },
+    el.form({ onSubmit: evt => { evt.preventDefault(); addTask() } },
 
       el.inputText({ placeholder: "What needs to be done?", model: taskDescription }),
 
-      el.button("Add task"),
+      el.button({ disabled: map(taskDescription, taskDescription => !taskDescription) }, "Add task"),
 
       el.ul(
-        $repeat(tasks, (task, i) =>
-          el.li(
-            el.inputCheckbox({ model: task.$.done }),
-            text(task.$.description),
-            el.button({ type: "button", onClick: deleteTask(i) }, "Delete task")
+        $repeat(tasks, (task, i) => {
+          const isVisible = combine([task, hash] as const, ([task, hash]) => !(task.done && hash === '#/active' || !task.done && hash === '#/completed'));
+          return $if(isVisible, () =>
+            el.li(
+              el.inputCheckbox({ model: task.$.done }),
+              text(task.$.description),
+              el.button({ type: "button", onClick: deleteTask(i) }, "Delete task")
+            )
           )
-        )
+        })
       ),
 
-      $if(count, () =>
-        el.div(text`You have ${count} tasks in your todo list.`)
+      el.div(
+        el.a({ href: "#/" }, "All"),
+        el.a({ href: "#/active" }, "Active"),
+        el.a({ href: "#/completed" }, "Completed")
+      ),
+
+      $if(pendingCount,
+        () => el.div(text`There are ${pendingCount} items in your todo list.`),
+        () => el.div("There is nothing in your todo list")
       )
     )
   );

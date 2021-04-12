@@ -9,6 +9,7 @@ export type Modifiers<C> = (C | DombNode | string)[];
 export const el = {
   form: dombElementOf('form'),
   div: dombElementOf('div'),
+  a: dombElementOf('a'),
   span: dombElementOf('span'),
   ul: dombElementOf('ul'),
   li: dombElementOf('li'),

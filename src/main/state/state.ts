@@ -5,7 +5,7 @@ export function state<T>(initialValue: T): State<T> {
   return new State(initialValue);
 }
 
-abstract class BaseState<T> implements IState<T> {
+export abstract class BaseState<T> implements IState<T> {
   $: IFieldAccessor<T>;
   updater: IStateUpdater<T>;
 
