@@ -18,7 +18,7 @@ export interface IEventSource<T> {
 }
 
 export interface IValueSource<T> extends IEventSource<IValueChangeEvent<T>> {
-  getValue(): T;
+  readonly value: T;
   bind(scope: IScope, callback: Callback<T>): Unsubscribe;
 }
 
@@ -27,7 +27,7 @@ export type ValueLike<T> = IValueSource<T> | T;
 export type UnwrapedValue<T> = T extends IValueSource<infer U> ? U : T;
 
 export interface IState<T> extends IValueSource<T> {
-  setValue(newValue: T): void;
+  value: T;
   update(updateFn: Updater<T>): void;
 
   $: IFieldAccessor<T>;
@@ -54,5 +54,5 @@ export type IStateUpdater<T> =
   : {};
 
 export function isValueSource<T = unknown>(v: IValueSource<T> | unknown): v is IValueSource<T> {
-  return typeof v === 'object' && v !== null && 'getValue' in v;
+  return typeof v === 'object' && v !== null && 'value' in v;
 }

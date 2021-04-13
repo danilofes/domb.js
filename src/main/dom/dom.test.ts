@@ -1,5 +1,5 @@
 import { root, $if, $repeat, el, text } from ".";
-import { state } from "../state";
+import { state, removeAt, append } from "../state";
 
 test("static text node", () => {
   const rootEl = createEl('div');
@@ -23,7 +23,7 @@ test("dynamic text node", () => {
   const actualNode = rootEl.childNodes[0];
   expect(actualNode.textContent).toBe("dynamic text");
 
-  myString.setValue("new value");
+  myString.value = "new value";
   expect(actualNode.textContent).toBe("new value");
 });
 
@@ -74,10 +74,10 @@ test("$if directive", () => {
 
   expect(rootEl.innerHTML).toBe("<!--if node-->");
 
-  condition.setValue(true);
+  condition.value = true;
   expect(rootEl.innerHTML).toBe("<span></span><!--if node-->");
 
-  condition.setValue(false);
+  condition.value = false;
   expect(rootEl.innerHTML).toBe("<!--if node-->");
 });
 
@@ -88,7 +88,7 @@ test("$repeat directive", () => {
     $repeat(fruits, (fruit, i) =>
       el.div(
         text`${i}: ${fruit.$.name}`,
-        el.button({ onClick: () => fruits.updater.removeAt(i) }, text("X"))
+        el.button({ onClick: () => fruits.update(removeAt(i)) }, text("X"))
       )
     )
   );
@@ -97,7 +97,7 @@ test("$repeat directive", () => {
   expect(rootEl.children[0].outerHTML).toBe("<div>0: apple<button>X</button></div>");
   expect(rootEl.children[1].outerHTML).toBe("<div>1: orange<button>X</button></div>");
 
-  fruits.updater.append({ name: "banana" });
+  fruits.update(append({ name: "banana" }));
   expect(rootEl.children.length).toBe(3);
   expect(rootEl.children[2].outerHTML).toBe("<div>2: banana<button>X</button></div>");
 
@@ -108,9 +108,9 @@ test("$repeat directive", () => {
   expect(rootEl.children[0].outerHTML).toBe("<div>0: apple<button>X</button></div>");
   expect(rootEl.children[1].outerHTML).toBe("<div>1: banana<button>X</button></div>");
 
-  fruits.updater.removeAt(1);
+  fruits.update(removeAt(1));
 
-  fruits.setValue([]);
+  fruits.value = [];
   expect(rootEl.children.length).toBe(0);
 });
 
@@ -123,7 +123,7 @@ test("text template tag", () => {
   );
   expect(rootEl.textContent).toBe("the counter is 1");
 
-  counter.setValue(2);
+  counter.value = 2;
   expect(rootEl.textContent).toBe("the counter is 2");
 });
 

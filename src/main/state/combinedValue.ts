@@ -35,12 +35,12 @@ class CombinedValue<T> extends SimpleScope implements IValueSource<T> {
     super();
   }
 
-  getValue(): T {
+  get value(): T {
     return this.computeValue();
   }
 
   private computeValue(): T {
-    const values: any[] = this.sources.map(vs => vs.getValue());
+    const values: any[] = this.sources.map(vs => vs.value);
     return this.computeFn(...values);
   }
 
@@ -54,17 +54,17 @@ class CombinedValue<T> extends SimpleScope implements IValueSource<T> {
   }
 
   bind(scope: IScope, callback: Callback<T>): Unsubscribe {
-    callback(this.getValue());
+    callback(this.value);
     return this.subscribe(scope, ({ newValue }) => callback(newValue));
   }
 
   start() {
     if (!this.started) {
       this.started = true;
-      this.lastValue = this.getValue();
+      this.lastValue = this.value;
       const onSourceChange = () => {
         const prevValue = this.lastValue as T;
-        const newValue = this.getValue();
+        const newValue = this.value;
         if (newValue !== prevValue) {
           this.lastValue = newValue;
           this.listeners.forEach(callback => callback({ newValue, prevValue }));

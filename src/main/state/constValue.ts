@@ -11,10 +11,10 @@ export function asValueSource<T>(vsOrV: ValueLike<T>): IValueSource<T> {
 
 export class ConstValue<T> implements IValueSource<T> {
 
-  constructor(private value: T) { }
+  constructor(private _value: T) { }
 
-  getValue(): T {
-    return this.value;
+  get value(): T {
+    return this._value;
   }
 
   subscribe(scope: IScope, callback: Callback<IValueChangeEvent<T>>): Unsubscribe {
@@ -22,7 +22,7 @@ export class ConstValue<T> implements IValueSource<T> {
   }
 
   bind(scope: IScope, callback: Callback<T>): Unsubscribe {
-    callback(this.getValue());
+    callback(this.value);
     return doNothing;
   }
 

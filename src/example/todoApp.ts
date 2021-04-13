@@ -13,9 +13,9 @@ export function mountTodoApp(rootEl: HTMLElement) {
     pendingCount = compute(tasks, tasks => tasks.filter(task => !task.done).length);
 
   function addTask() {
-    const newTask = { done: false, description: taskDescription.getValue() };
+    const newTask = { done: false, description: taskDescription.value };
     tasks.update(append(newTask));
-    taskDescription.setValue("");
+    taskDescription.value = "";
   }
 
   function deleteTask(i: number) {

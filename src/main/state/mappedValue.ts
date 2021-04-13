@@ -8,8 +8,8 @@ class MappedValue<T, U> implements IValueSource<T> {
 
   constructor(private source: IValueSource<U>, private mappingFn: (value: U) => T) { }
 
-  getValue(): T {
-    return this.mappingFn(this.source.getValue());
+  get value(): T {
+    return this.mappingFn(this.source.value);
   }
 
   subscribe(scope: IScope, callback: Callback<IValueChangeEvent<T>>): Unsubscribe {
@@ -23,7 +23,7 @@ class MappedValue<T, U> implements IValueSource<T> {
   }
 
   bind(scope: IScope, callback: Callback<T>): Unsubscribe {
-    callback(this.getValue());
+    callback(this.value);
     return this.subscribe(scope, ({ newValue }) => callback(newValue));
   }
 

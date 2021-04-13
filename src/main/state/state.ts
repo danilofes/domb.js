@@ -7,24 +7,21 @@ export function state<T>(initialValue: T): State<T> {
 
 export abstract class BaseState<T> implements IState<T> {
   $: IFieldAccessor<T>;
-  updater: IStateUpdater<T>;
+  abstract value: T;
 
   constructor() {
     this.$ = createFieldAccessor(this);
-    this.updater = new StateUpdater(this) as unknown as IStateUpdater<T>;
   }
 
-  abstract getValue(): T;
-  abstract setValue(newValue: T): void;
   abstract subscribe(scope: IScope, callback: Callback<IValueChangeEvent<T>>): Unsubscribe;
 
   bind(scope: IScope, callback: Callback<T>): Unsubscribe {
-    callback(this.getValue());
+    callback(this.value);
     return this.subscribe(scope, ({ newValue }) => callback(newValue));
   }
 
   push(event: T): void {
-    this.setValue(event);
+    this.value = event;
   }
 
   withFallbackValue(value: NonNullable<T>): IState<NonNullable<T>> {
@@ -36,7 +33,7 @@ export abstract class BaseState<T> implements IState<T> {
   }
 
   update(updateFn: Updater<T>) {
-    this.setValue(updateFn(this.getValue()));
+    this.value = updateFn(this.value);
   }
 }
 
@@ -44,12 +41,12 @@ export class State<T> extends BaseState<T> {
   private readonly listeners: Set<Callback<IValueChangeEvent<T>>> = new Set();
   private pendingChange: IValueChangeEvent<T> | null = null;
 
-  constructor(private value: T) {
+  constructor(private _value: T) {
     super();
   }
 
-  getValue(): T {
-    return this.value;
+  get value(): T {
+    return this._value;
   }
 
   subscribe(scope: IScope, callback: Callback<IValueChangeEvent<T>>): Unsubscribe {
@@ -57,9 +54,9 @@ export class State<T> extends BaseState<T> {
     return scope.addUnsubscribe(() => this.listeners.delete(callback));
   }
 
-  setValue(newValue: T) {
-    const changeEvent = { newValue, prevValue: this.value };
-    this.value = newValue;
+  set value(newValue: T) {
+    const changeEvent = { newValue, prevValue: this._value };
+    this._value = newValue;
     this.emitValueChangeEventAtEndOfTransaction(changeEvent);
   }
 
@@ -92,12 +89,12 @@ abstract class DerivedState<T, U> extends BaseState<U> {
     return false;
   };
 
-  getValue(): U {
-    return this.getDerivedValue(this.state.getValue());
+  get value(): U {
+    return this.getDerivedValue(this.state.value);
   }
 
-  setValue(newValue: U): void {
-    this.state.setValue(this.buildDerivedValue(this.state.getValue(), newValue));
+  set value(newValue: U) {
+    this.state.value = this.buildDerivedValue(this.state.value, newValue);
   }
 
   subscribe(scope: IScope, callback: Callback<IValueChangeEvent<U>>): Unsubscribe {
@@ -171,44 +168,4 @@ function createFieldAccessor<T>(state: IState<T>): IFieldAccessor<T> {
       return new StateField<any, any>(state, name);
     },
   });
-}
-
-export class StateUpdater {
-  constructor(private state: IState<any>) { }
-
-  append(element: any): void {
-    const v = this.state.getValue();
-    if (Array.isArray(v)) {
-      this.state.setValue([...v, element]);
-    } else {
-      throw Error('state does not hold an array');
-    }
-  }
-
-  removeAt(index: number): void {
-    const v = this.state.getValue();
-    if (Array.isArray(v)) {
-      this.state.setValue([...v.slice(0, index), ...v.slice(index + 1)]);
-    } else {
-      throw Error('state does not hold an array');
-    }
-  }
-
-  replaceAt(index: number, element: any): void {
-    const v = this.state.getValue();
-    if (Array.isArray(v)) {
-      this.state.setValue([...v.slice(0, index), element, ...v.slice(index + 1)]);
-    } else {
-      throw Error('state does not hold an array');
-    }
-  }
-
-  patch(fields: any): void {
-    const v = this.state.getValue();
-    if (typeof v === 'object' && v !== null) {
-      this.state.setValue({ ...v, ...fields });
-    } else {
-      throw Error('state does not hold an object');
-    }
-  }
 }

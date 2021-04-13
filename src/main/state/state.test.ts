@@ -1,12 +1,12 @@
-import { state, SimpleScope } from ".";
+import { state, SimpleScope, append, removeAt } from ".";
 
 describe("state", () => {
   it("should hold a value", () => {
     const myState = state(1);
-    expect(myState.getValue()).toBe(1);
+    expect(myState.value).toBe(1);
 
-    myState.setValue(2);
-    expect(myState.getValue()).toBe(2);
+    myState.value = 2;
+    expect(myState.value).toBe(2);
   });
 
   it("should be bindable", () => {
@@ -17,7 +17,7 @@ describe("state", () => {
     myState.bind(scope, (v) => (myValue = v));
     expect(myValue).toBe(1);
 
-    myState.setValue(2);
+    myState.value = 2;
     expect(myValue).toBe(2);
   });
 
@@ -30,7 +30,7 @@ describe("state", () => {
     expect(myValue).toBe(1);
 
     scope.unsubscribeAll();
-    myState.setValue(2);
+    myState.value = 2;
     expect(myValue).toBe(1);
   });
 
@@ -47,7 +47,7 @@ describe("state", () => {
     myState.bind(scope, (v) => (myValue = v));
     expect(myValue).toBe(1);
 
-    myState.setValue(2);
+    myState.value = 2;
     expect(myValue).toBe(2);
   });
 
@@ -60,31 +60,31 @@ describe("state", () => {
     myState.bind(scope, (v) => (myValue = v));
     expect(myValue).toBe(1);
 
-    myState.setValue(2);
+    myState.value = 2;
     expect(myValue).toBe(2);
   });
 
   it("array index should not crash when cease to exist", () => {
     const scope = new SimpleScope();
-    
+
     const arrayState = state<number[]>([]);
     const index1State = arrayState.atIndex(1);
     const log: string[] = [];
     index1State.subscribe(scope, (e) => log.push(`changed from ${e.prevValue} to ${e.newValue}`));
 
-    expect(() => index1State.getValue()).toThrow();
+    expect(() => index1State.value).toThrow();
 
-    arrayState.updater.append(7);
-    arrayState.updater.append(8);
-    expect(arrayState.getValue()).toEqual([7, 8]);
+    arrayState.update(append(7));
+    arrayState.update(append(8));
+    expect(arrayState.value).toEqual([7, 8]);
     expect(log).toEqual([]);
 
-    index1State.setValue(9);
-    expect(arrayState.getValue()).toEqual([7, 9]);
+    index1State.value = 9;
+    expect(arrayState.value).toEqual([7, 9]);
     expect(log).toEqual(["changed from 8 to 9"]);
 
-    arrayState.updater.removeAt(0);
-    expect(arrayState.getValue()).toEqual([9]);
+    arrayState.update(removeAt(0));
+    expect(arrayState.value).toEqual([9]);
     expect(log).toEqual(["changed from 8 to 9"]);
   });
 
@@ -104,8 +104,8 @@ describe("state", () => {
     myState.bind(scope, (v) => (myValue = v));
     expect(myValue).toBe(1);
 
-    myState.setValue(2);
+    myState.value = 2;
     expect(myValue).toBe(2);
-    expect(parentState.getValue().inner?.y).toBe(1);
+    expect(parentState.value.inner?.y).toBe(1);
   });
 });

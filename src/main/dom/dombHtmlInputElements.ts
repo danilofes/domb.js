@@ -22,7 +22,7 @@ export abstract class DombHtmlInput<V> extends DombDynamicHtmlElement<"input", E
         this.setModelValue(v);
       });
       this.onModelValueChange((newV: V) => {
-        model.setValue(newV);
+        model.value = newV;
       });
     }
     super.applyConfig(rest);

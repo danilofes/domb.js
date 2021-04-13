@@ -2,11 +2,11 @@ import { BaseState, Callback, IScope, IValueChangeEvent, Unsubscribe } from "../
 
 class LocationHashState extends BaseState<string> {
 
-  getValue(): string {
+  get value(): string {
     return window.location.hash;
   }
 
-  setValue(newValue: string): void {
+  set value(newValue: string) {
     window.location.hash = newValue;
   }
 
