@@ -1,9 +1,10 @@
 import { BaseState, Callback, IScope, IValueChangeEvent, Unsubscribe } from "../state";
+import { readAndNotify } from "../state/sourceCollector";
 
 class LocationHashState extends BaseState<string> {
 
   get value(): string {
-    return window.location.hash;
+    return readAndNotify(this, window.location.hash);
   }
 
   set value(newValue: string) {

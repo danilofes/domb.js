@@ -3,6 +3,7 @@ import { SimpleScope } from "./simpleScope";
 import { asValueSource } from "./constValue";
 import { map } from "./mappedValue";
 import { ConstValue } from "./constValue";
+import { collectSources, readAndNotify } from "./sourceCollector";
 
 export type UnwrapedValueSource<T> = T extends IValueSource<infer V> ? V : never;
 
@@ -10,6 +11,10 @@ export type UnwrapedValueSourceTuple<T extends readonly IValueSource<any>[]> = {
   [K in keyof T]: UnwrapedValueSource<T[K]>
 };
 
+
+export function compute2<T>(computeFn: () => T): IValueSource<T> {
+  return new ComputedValue<T>(computeFn);
+}
 
 export function compute<T, T1>(source: IValueSource<T1>, computeFn: (a1: T1) => T): IValueSource<T>;
 export function compute<T, T1, T2>(sources: [IValueSource<T1>, IValueSource<T2>], computeFn: (a1: T1, a2: T2) => T): IValueSource<T>;
@@ -24,6 +29,71 @@ export function compute<T>(sources: IValueSource<any>[] | IValueSource<any>, com
   }
 }
 
+
+class ComputedValue<T> extends SimpleScope implements IValueSource<T> {
+
+  private readonly listeners: Set<Callback<IValueChangeEvent<T>>> = new Set();
+  private lastValue: T | undefined = undefined;
+  private started = false;
+
+  constructor(private computeFn: () => T) {
+    super();
+  }
+
+  get value(): T {
+    return this.computeFn();
+  }
+
+  subscribe(scope: IScope, callback: Callback<IValueChangeEvent<T>>): Unsubscribe {
+    this.start();
+    this.listeners.add(callback);
+    return scope.addUnsubscribe(() => {
+      this.listeners.delete(callback);
+      this.stop();
+    });
+  }
+
+  bind(scope: IScope, callback: Callback<T>): Unsubscribe {
+    callback(this.value);
+    return this.subscribe(scope, ({ newValue }) => callback(newValue));
+  }
+
+  start() {
+    if (!this.started) {
+      this.started = true;
+      const [currentValue, initialSources] = collectSources(this.computeFn);
+      this.lastValue = currentValue;
+
+      const onSourceChange = () => {
+        const prevValue = this.lastValue as T;
+        const [newValue, sources] = collectSources(this.computeFn);
+        
+        //const newValue = this.value;
+        if (newValue !== prevValue) {
+          this.lastValue = newValue;
+          this.listeners.forEach(callback => callback({ newValue, prevValue }));
+        }
+
+        //this.unsubscribeAll();
+        //for (const source of sources) {
+        //  source.subscribe(this, onSourceChange);
+        //}
+      }
+
+      for (const source of initialSources) {
+        source.subscribe(this, onSourceChange);
+      }
+    }
+  }
+
+  stop() {
+    if (this.started) {
+      this.started = false;
+      this.lastValue = undefined;
+      this.unsubscribeAll();
+    }
+  }
+}
 
 class CombinedValue<T> extends SimpleScope implements IValueSource<T> {
 
@@ -40,7 +110,7 @@ class CombinedValue<T> extends SimpleScope implements IValueSource<T> {
   }
 
   private computeValue(): T {
-    const values: any[] = this.sources.map(vs => vs.value);
+    const values: any[] = readAndNotify(this, () => this.sources.map(vs => vs.value));
     return this.computeFn(...values);
   }
 
@@ -92,7 +162,7 @@ export function textVal(arg0: TemplateStringsArray, ...args: unknown[]): IValueS
   } else if (valueSources.length === 1) {
     return map(valueSources[0], (v0) => applyTemplateString(arg0, [v0]))
   } else {
-    return compute(valueSources, (...values) => {
+    return new CombinedValue(valueSources, (...values) => {
       return applyTemplateString(arg0, values);
     });
   }

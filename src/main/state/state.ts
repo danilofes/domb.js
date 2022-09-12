@@ -1,4 +1,5 @@
 import { Callback, IScope, IState, IStateUpdater, IValueChangeEvent, Unsubscribe, IFieldAccessor, Updater } from "./events";
+import { readAndNotify } from "./sourceCollector";
 import { onCommitTransaction } from "./transaction";
 
 export function state<T>(initialValue: T): State<T> {
@@ -46,7 +47,7 @@ export class State<T> extends BaseState<T> {
   }
 
   get value(): T {
-    return this._value;
+    return readAndNotify(this, () => this._value);
   }
 
   subscribe(scope: IScope, callback: Callback<IValueChangeEvent<T>>): Unsubscribe {
@@ -90,7 +91,7 @@ abstract class DerivedState<T, U> extends BaseState<U> {
   };
 
   get value(): U {
-    return this.getDerivedValue(this.state.value);
+    return readAndNotify(this, () => this.getDerivedValue(this.state.value));
   }
 
   set value(newValue: U) {

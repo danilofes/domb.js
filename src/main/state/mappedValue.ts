@@ -1,4 +1,5 @@
 import { Callback, IScope, IValueChangeEvent, IValueSource, Unsubscribe } from "./events";
+import { readAndNotify } from "./sourceCollector";
 
 export function map<T, U>(source: IValueSource<U>, mappingFn: (value: U) => T) {
   return new MappedValue(source, mappingFn);
@@ -9,7 +10,7 @@ class MappedValue<T, U> implements IValueSource<T> {
   constructor(private source: IValueSource<U>, private mappingFn: (value: U) => T) { }
 
   get value(): T {
-    return this.mappingFn(this.source.value);
+    return readAndNotify(this, () => this.mappingFn(this.source.value));
   }
 
   subscribe(scope: IScope, callback: Callback<IValueChangeEvent<T>>): Unsubscribe {
