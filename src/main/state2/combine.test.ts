@@ -4,7 +4,7 @@ test('should be possible to combine two states', () => {
   const state1 = state(4);
   const state2 = state(3);
 
-  const n1TimesN2 = compute([state1, state2], (n1, n2) => n1 * n2);
+  const n1TimesN2 = compute(() => state1.value * state2.value);
   expect(n1TimesN2.value).toBe(12);
 
   const scope = new SimpleScope();
@@ -27,7 +27,7 @@ test('should not fire when value is unchanged', () => {
   const rectangleState = state({ w: 3, h: 4 });
   const wState = map(rectangleState, rect => rect.w);
   const hState = map(rectangleState, rect => rect.h);
-  const areaState = compute([wState, hState], (w, h) => w * h);
+  const areaState = compute(() => wState.value * hState.value);
 
   const scope = new SimpleScope();
   const log: string[] = [];
