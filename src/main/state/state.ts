@@ -1,4 +1,13 @@
-import { Callback, IScope, IState, IStateUpdater, IValueChangeEvent, Unsubscribe, IFieldAccessor, Updater } from "./events";
+import {
+  Callback,
+  IScope,
+  IState,
+  IStateUpdater,
+  IValueChangeEvent,
+  Unsubscribe,
+  IFieldAccessor,
+  Updater,
+} from "./events";
 import { readAndNotify } from "./sourceCollector";
 import { onCommitTransaction } from "./transaction";
 
@@ -30,7 +39,7 @@ export abstract class BaseState<T> implements IState<T> {
   }
 
   atIndex(i: number): T extends ReadonlyArray<infer E> ? StateArrayIndex<E> : never {
-    return new StateArrayIndex<any>((this as any), i) as any;
+    return new StateArrayIndex<any>(this as any, i) as any;
   }
 
   update(updateFn: Updater<T>) {
@@ -88,7 +97,7 @@ abstract class DerivedState<T, U> extends BaseState<U> {
 
   protected shouldSkipChangeEvent(ce: IValueChangeEvent<T>): boolean {
     return false;
-  };
+  }
 
   get value(): U {
     return readAndNotify(this, () => this.getDerivedValue(this.state.value));
@@ -164,9 +173,12 @@ class NonNullableState<T> extends DerivedState<T, NonNullable<T>> {
 }
 
 function createFieldAccessor<T>(state: IState<T>): IFieldAccessor<T> {
-  return new Proxy<any>({}, {
-    get: (target, name) => {
-      return new StateField<any, any>(state, name);
-    },
-  });
+  return new Proxy<any>(
+    {},
+    {
+      get: (target, name) => {
+        return new StateField<any, any>(state, name);
+      },
+    }
+  );
 }

@@ -1,12 +1,16 @@
-import { IValueSource } from '../state';
-import { DombNode } from './dombNode';
+import { IValueSource } from "../state";
+import { DombNode } from "./dombNode";
 
 export class IfDirective extends DombNode<Comment> {
   trueNode?: DombNode;
   falseNode?: DombNode;
 
-  constructor(private condition: IValueSource<unknown>, private nodeFactoryTrue: () => DombNode, private nodeFactoryFalse?: () => DombNode) {
-    super(document.createComment('if node'));
+  constructor(
+    private condition: IValueSource<unknown>,
+    private nodeFactoryTrue: () => DombNode,
+    private nodeFactoryFalse?: () => DombNode
+  ) {
+    super(document.createComment("if node"));
   }
 
   acceptsChild(childNode: DombNode): boolean {
@@ -53,6 +57,10 @@ export class IfDirective extends DombNode<Comment> {
   }
 }
 
-export function $if(condition: IValueSource<unknown>, nodeFactoryTrue: () => DombNode, nodeFactoryFalse?: () => DombNode) {
+export function $if(
+  condition: IValueSource<unknown>,
+  nodeFactoryTrue: () => DombNode,
+  nodeFactoryFalse?: () => DombNode
+) {
   return new IfDirective(condition, nodeFactoryTrue);
 }

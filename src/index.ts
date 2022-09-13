@@ -1,2 +1,2 @@
-export * from './main/dom';
-export * from './main/state';
+export * from "./main/dom";
+export * from "./main/state";

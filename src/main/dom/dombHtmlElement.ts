@@ -1,6 +1,5 @@
-import { asValueSource, ValueLike, Unsubscribe } from '../state';
-import { DombNode } from './dombNode';
-
+import { asValueSource, ValueLike, Unsubscribe } from "../state";
+import { DombNode } from "./dombNode";
 
 type ValidNodeProperty<E extends Node, K extends keyof E> = E[K] extends string | number | boolean | null ? K : never;
 
@@ -9,15 +8,15 @@ type NodePropertiesConfig<E extends Node> = {
 };
 
 type ElementAttributesConfig = {
-  [key: string]: ValueLike<string | boolean>
+  [key: string]: ValueLike<string | boolean>;
 };
 
 type EventsConfig = {
   [K in keyof HTMLElementEventMap as `on${Capitalize<K>}`]?: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any;
 };
 
-export type ElementConfig<E extends HTMLElement> = NodePropertiesConfig<E> & EventsConfig & { attrs?: ElementAttributesConfig };
-
+export type ElementConfig<E extends HTMLElement> = NodePropertiesConfig<E> &
+  EventsConfig & { attrs?: ElementAttributesConfig };
 
 const EVENT_CONFIG_KEY = /^on([A-Z].*)$/;
 
@@ -30,17 +29,21 @@ export abstract class DombHtmlElement<E extends HTMLElement, C = ElementConfig<E
     return true;
   }
 
-  on<T extends DombHtmlElement<E>, K extends keyof HTMLElementEventMap>(this: T, eventName: K, callback: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any): Unsubscribe {
+  on<T extends DombHtmlElement<E>, K extends keyof HTMLElementEventMap>(
+    this: T,
+    eventName: K,
+    callback: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any
+  ): Unsubscribe {
     this.domNode.addEventListener(eventName, callback);
     return this.addUnsubscribe(() => this.domNode.removeEventListener(eventName, callback));
   }
 
   bindAttr(attr: string, vs: ValueLike<boolean | string>): Unsubscribe {
-    return asValueSource(vs).bind(this, value => {
+    return asValueSource(vs).bind(this, (value) => {
       if (value === false) {
         this.domNode.removeAttribute(attr);
       } else if (value === true) {
-        this.domNode.setAttribute(attr, '');
+        this.domNode.setAttribute(attr, "");
       } else {
         this.domNode.setAttribute(attr, value);
       }
@@ -70,11 +73,14 @@ export abstract class DombHtmlElement<E extends HTMLElement, C = ElementConfig<E
 export class DombStaticHtmlElement<E extends HTMLElement> extends DombHtmlElement<E> {
   constructor(el: E) {
     super(el);
-    this.status = 'mounted';
+    this.status = "mounted";
   }
 }
 
-export class DombDynamicHtmlElement<K extends keyof HTMLElementTagNameMap, C = ElementConfig<HTMLElementTagNameMap[K]>> extends DombHtmlElement<HTMLElementTagNameMap[K], C> {
+export class DombDynamicHtmlElement<
+  K extends keyof HTMLElementTagNameMap,
+  C = ElementConfig<HTMLElementTagNameMap[K]>
+> extends DombHtmlElement<HTMLElementTagNameMap[K], C> {
   constructor(tagName: K) {
     super(document.createElement(tagName));
   }
@@ -82,7 +88,7 @@ export class DombDynamicHtmlElement<K extends keyof HTMLElementTagNameMap, C = E
 
 export function root<E extends HTMLElement>(element: E | null): DombStaticHtmlElement<E> {
   if (element === null) {
-    throw new Error('element should not be null');
+    throw new Error("element should not be null");
   }
   return new DombStaticHtmlElement<E>(element);
 }

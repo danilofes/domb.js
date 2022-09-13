@@ -18,11 +18,10 @@ export function inTransaction(task: (transaction: Transaction) => void) {
 }
 
 export function onCommitTransaction(task: Task) {
-  inTransaction(tx => tx.doOnCommit(task));
+  inTransaction((tx) => tx.doOnCommit(task));
 }
 
 class Transaction implements ITransaction {
-
   private tasks: Task[] = [];
 
   doOnCommit(task: Task): void {
@@ -35,5 +34,4 @@ class Transaction implements ITransaction {
     }
     this.tasks = [];
   }
-
 }

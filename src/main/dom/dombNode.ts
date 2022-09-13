@@ -1,10 +1,10 @@
-import { asValueSource, SimpleScope, ValueLike, Unsubscribe } from '../state';
+import { asValueSource, SimpleScope, ValueLike, Unsubscribe } from "../state";
 
-type NodeStatus = 'unmounted' | 'mounted' | 'destroyed';
+type NodeStatus = "unmounted" | "mounted" | "destroyed";
 
 export abstract class DombNode<N extends Node = Node, C = unknown> extends SimpleScope {
   protected parent: DombNode | null = null;
-  protected status: NodeStatus = 'unmounted';
+  protected status: NodeStatus = "unmounted";
   private _children: DombNode[] = [];
   private _configs?: C[] = [];
   private _domNode: N;
@@ -16,7 +16,7 @@ export abstract class DombNode<N extends Node = Node, C = unknown> extends Simpl
 
   get domNode(): N {
     return this._domNode;
-  };
+  }
 
   addChild(child: DombNode, beforeNode?: Node) {
     if (!this.acceptsChild(child)) {
@@ -24,7 +24,7 @@ export abstract class DombNode<N extends Node = Node, C = unknown> extends Simpl
     }
     this._children.push(child);
     child.parent = this;
-    if (this.status === 'mounted') {
+    if (this.status === "mounted") {
       this.mountChild(child, beforeNode);
     }
   }
@@ -32,7 +32,7 @@ export abstract class DombNode<N extends Node = Node, C = unknown> extends Simpl
   removeChild(child: DombNode, beforeNode?: Node) {
     const idx = this._children.indexOf(child);
     if (idx !== -1) {
-      if (this.status !== 'unmounted') {
+      if (this.status !== "unmounted") {
         this.unmountChild(child);
       }
       this._children.splice(idx, 1);
@@ -41,18 +41,18 @@ export abstract class DombNode<N extends Node = Node, C = unknown> extends Simpl
   }
 
   private mountChild(child: DombNode, beforeNode?: Node) {
-    if (child.status === 'unmounted') {
+    if (child.status === "unmounted") {
       this.domNode.insertBefore(child.domNode, beforeNode ?? null);
-      child.status = 'mounted';
+      child.status = "mounted";
       child.onMount();
     }
   }
 
   private unmountChild(child: DombNode) {
-    if (child.status === 'mounted') {
+    if (child.status === "mounted") {
       child.onDestroy();
       this.domNode.removeChild(child.domNode);
-      child.status = 'destroyed';
+      child.status = "destroyed";
     }
   }
 
@@ -85,7 +85,7 @@ export abstract class DombNode<N extends Node = Node, C = unknown> extends Simpl
     if (this.parent !== null) {
       throw new Error(`Domb nodes with a parent should call parent.unmountChild(node)`);
     } else {
-      this.status = 'destroyed';
+      this.status = "destroyed";
       this.onDestroy();
     }
   }
@@ -95,7 +95,7 @@ export abstract class DombNode<N extends Node = Node, C = unknown> extends Simpl
   }
 
   bindProp<K extends keyof N>(prop: K, vs: ValueLike<N[K]>): Unsubscribe {
-    return asValueSource(vs).bind(this, value => this._domNode[prop] = value);
+    return asValueSource(vs).bind(this, (value) => (this._domNode[prop] = value));
   }
 
   apply<T extends DombNode<N, C>>(this: T, config: C): T {

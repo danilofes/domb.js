@@ -1,7 +1,6 @@
 import { IScope, Unsubscribe } from "./events";
 
 export class SimpleScope implements IScope {
-
   private readonly subscriptions: Set<Unsubscribe> = new Set();
 
   addUnsubscribe(unsubscribe: Unsubscribe): Unsubscribe {
@@ -13,8 +12,7 @@ export class SimpleScope implements IScope {
   }
 
   unsubscribeAll(): void {
-    this.subscriptions.forEach(unsubscribe => unsubscribe());
+    this.subscriptions.forEach((unsubscribe) => unsubscribe());
     this.subscriptions.clear();
   }
-
 }

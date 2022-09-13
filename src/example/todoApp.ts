@@ -1,16 +1,15 @@
 import { root, $if, $repeat, el, text, state, locationHashState, compute2, map, append, removeAt } from "..";
 
 interface ITask {
-  done: boolean,
-  description: string
-};
+  done: boolean;
+  description: string;
+}
 
 export function mountTodoApp(rootEl: HTMLElement) {
-  const
-    taskDescription = state(""),
+  const taskDescription = state(""),
     tasks = state<ITask[]>([]),
     hash = locationHashState(),
-    pendingCount = map(tasks, tasks => tasks.filter(task => !task.done).length);
+    pendingCount = map(tasks, (tasks) => tasks.filter((task) => !task.done).length);
 
   function addTask() {
     const newTask = { done: false, description: taskDescription.value };
@@ -23,22 +22,30 @@ export function mountTodoApp(rootEl: HTMLElement) {
   }
 
   root(rootEl).children(
-    el.form({ onSubmit: evt => { evt.preventDefault(); addTask() } },
+    el.form(
+      {
+        onSubmit: (evt) => {
+          evt.preventDefault();
+          addTask();
+        },
+      },
       el.inputText({ placeholder: "What needs to be done?", model: taskDescription }),
-      el.button({ disabled: map(taskDescription, taskDescription => !taskDescription) }, "Add task"),
+      el.button({ disabled: map(taskDescription, (taskDescription) => !taskDescription) }, "Add task")
     ),
 
     el.ul(
       $repeat(tasks, (task, i) => {
         const done = task.$.done;
-        const isVisible = compute2(() => !(done.value && hash.value === '#/active' || done.value && hash.value === '#/completed'));
+        const isVisible = compute2(
+          () => !((done.value && hash.value === "#/active") || (done.value && hash.value === "#/completed"))
+        );
         return $if(isVisible, () =>
           el.li(
             el.inputCheckbox({ model: task.$.done }),
             text(task.$.description),
             el.button({ type: "button", onClick: deleteTask(i) }, "Delete task")
           )
-        )
+        );
       })
     ),
 
@@ -48,7 +55,8 @@ export function mountTodoApp(rootEl: HTMLElement) {
       el.a({ href: "#/completed" }, "Completed")
     ),
 
-    $if(pendingCount,
+    $if(
+      pendingCount,
       () => el.div(text`There are ${pendingCount} items in your todo list.`),
       () => el.div("There is nothing in your todo list")
     )

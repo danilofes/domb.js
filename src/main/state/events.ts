@@ -1,4 +1,3 @@
-
 export type Callback<T> = (value: T) => void;
 export type Unsubscribe = () => void;
 export type Updater<T> = (prevValue: T) => T;
@@ -36,23 +35,24 @@ export interface IState<T> extends IValueSource<T> {
   withFallbackValue(value: NonNullable<T>): IState<NonNullable<T>>;
 }
 
-export type IFieldAccessor<T> =
-  T extends object ? {
-    [K in keyof T & string]: IState<T[K]>;
-  }
+export type IFieldAccessor<T> = T extends object
+  ? {
+      [K in keyof T & string]: IState<T[K]>;
+    }
   : {};
 
-export type IStateUpdater<T> =
-  T extends ReadonlyArray<infer E> ? {
-    append(element: E): void;
-    removeAt(index: number): void;
-    replaceAt(index: number, element: E): void;
-  }
-  : T extends object ? {
-    patch(fields: Partial<T>): void;
-  }
+export type IStateUpdater<T> = T extends ReadonlyArray<infer E>
+  ? {
+      append(element: E): void;
+      removeAt(index: number): void;
+      replaceAt(index: number, element: E): void;
+    }
+  : T extends object
+  ? {
+      patch(fields: Partial<T>): void;
+    }
   : {};
 
 export function isValueSource<T = unknown>(v: IValueSource<T> | unknown): v is IValueSource<T> {
-  return typeof v === 'object' && v !== null && 'value' in v;
+  return typeof v === "object" && v !== null && "value" in v;
 }

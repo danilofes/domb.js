@@ -1,3 +1,3 @@
-import { mountTodoApp } from './todoApp';
+import { mountTodoApp } from "./todoApp";
 
 mountTodoApp(document.getElementById("todoApp")!);

@@ -15,20 +15,20 @@ test("should be possible to map state", () => {
   expect(nValue).toBe(4);
 
   myState.value = {
-    n: 5
+    n: 5,
   };
   expect(nValue).toBe(5);
 
   scope.unsubscribeAll();
   myState.value = {
-    n: 6
+    n: 6,
   };
   expect(nValue).toBe(5);
 });
 
 test("should not fire when value is unchanged", () => {
   const myState = state({
-    n: 4
+    n: 4,
   });
   const mappedState = map(myState, (value) => value.n);
   const scope = new SimpleScope();
@@ -36,7 +36,7 @@ test("should not fire when value is unchanged", () => {
   mappedState.bind(scope, (n) => log.push(`callback n=${n}`));
 
   myState.value = {
-    n: 4
+    n: 4,
   };
 
   expect(log).toEqual(["callback n=4"]);

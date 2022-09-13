@@ -1,6 +1,5 @@
 import { Callback, IScope, IValueChangeEvent, IValueSource, Unsubscribe, isValueSource, ValueLike } from "./events";
 
-
 export function asValueSource<T>(vsOrV: ValueLike<T>): IValueSource<T> {
   if (isValueSource(vsOrV)) {
     return vsOrV;
@@ -10,8 +9,7 @@ export function asValueSource<T>(vsOrV: ValueLike<T>): IValueSource<T> {
 }
 
 export class ConstValue<T> implements IValueSource<T> {
-
-  constructor(private _value: T) { }
+  constructor(private _value: T) {}
 
   get value(): T {
     return this._value;
@@ -25,7 +23,6 @@ export class ConstValue<T> implements IValueSource<T> {
     callback(this.value);
     return doNothing;
   }
-
 }
 
-const doNothing = () => { };
+const doNothing = () => {};

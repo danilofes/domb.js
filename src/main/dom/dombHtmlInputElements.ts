@@ -1,5 +1,5 @@
-import { IState, Unsubscribe } from '../state';
-import { DombDynamicHtmlElement, ElementConfig } from './dombHtmlElement';
+import { IState, Unsubscribe } from "../state";
+import { DombDynamicHtmlElement, ElementConfig } from "./dombHtmlElement";
 
 export interface INodeWithModel<V> {
   setModelValue(value: V): void;
@@ -8,7 +8,10 @@ export interface INodeWithModel<V> {
 
 export type ElementConfigWithModel<E extends HTMLElement, V> = ElementConfig<E> & { model?: IState<V> };
 
-export abstract class DombHtmlInput<V> extends DombDynamicHtmlElement<"input", ElementConfigWithModel<HTMLInputElement, V>> {
+export abstract class DombHtmlInput<V> extends DombDynamicHtmlElement<
+  "input",
+  ElementConfigWithModel<HTMLInputElement, V>
+> {
   constructor() {
     super("input");
   }
@@ -18,7 +21,7 @@ export abstract class DombHtmlInput<V> extends DombDynamicHtmlElement<"input", E
   protected applyConfig(config: ElementConfig<HTMLInputElement> & { model: IState<V> }): void {
     const { model, ...rest } = config;
     if (model) {
-      model.bind(this, v => {
+      model.bind(this, (v) => {
         this.setModelValue(v);
       });
       this.onModelValueChange((newV: V) => {

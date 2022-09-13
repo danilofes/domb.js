@@ -2,9 +2,8 @@ import { BaseState, Callback, IScope, IValueChangeEvent, Unsubscribe } from "../
 import { readAndNotify } from "../state/sourceCollector";
 
 class LocationHashState extends BaseState<string> {
-
   get value(): string {
-    return readAndNotify(this, window.location.hash);
+    return readAndNotify(this, () => window.location.hash);
   }
 
   set value(newValue: string) {
@@ -13,13 +12,12 @@ class LocationHashState extends BaseState<string> {
 
   subscribe(scope: IScope, callback: Callback<IValueChangeEvent<string>>): Unsubscribe {
     const handler = (evt: HashChangeEvent) => {
-      const prevValue = '#' + (evt.oldURL.split('#')[1] || '/');
+      const prevValue = "#" + (evt.oldURL.split("#")[1] || "/");
       callback({ newValue: window.location.hash, prevValue });
     };
-    window.addEventListener('hashchange', handler);
-    return () => window.removeEventListener('hashchange', handler);
+    window.addEventListener("hashchange", handler);
+    return () => window.removeEventListener("hashchange", handler);
   }
-
 }
 
 export function locationHashState() {

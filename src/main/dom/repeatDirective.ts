@@ -1,11 +1,11 @@
-import { IState } from '../state';
-import { DombNode } from './dombNode';
+import { IState } from "../state";
+import { DombNode } from "./dombNode";
 
 export class RepeatDirective<T> extends DombNode<Comment> {
   mountedNodes: DombNode[] = [];
 
   constructor(private values: IState<T[]>, private buildItem: (itemAtIndex: IState<T>, index: number) => DombNode) {
-    super(document.createComment('repeat node'));
+    super(document.createComment("repeat node"));
   }
 
   acceptsChild(childNode: DombNode): boolean {
